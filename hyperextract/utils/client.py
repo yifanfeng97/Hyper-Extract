@@ -77,16 +77,40 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
         "default_llm": "claude-opus-4-8",
         "default_embedder": None,
     },
+    # Google Gemini. Uses the native ChatGoogleGenerativeAI client
+    # (langchain-google-genai), so base_url is empty. Gemini Developer API
+    # has no mature embedder path in this repo — pair with an OpenAI-compatible
+    # embedder. Default model is the current documented stable Flash id
+    # (Gemini API models page, 2026-09-04): gemini-3.8-flash.
+    "google": {
+        "base_url": "",
+        "default_llm": "gemini-3.8-flash",
+        "default_embedder": None,
+    },
+    "gemini": {
+        "base_url": "",
+        "default_llm": "gemini-3.8-flash",
+        "default_embedder": None,
+    },
 }
 
 # Providers handled by the native langchain-anthropic client rather than the
 # OpenAI-compatible path.
 ANTHROPIC_PROVIDERS = ("anthropic", "claude")
 
+# Providers handled by the native langchain-google-genai client.
+GOOGLE_PROVIDERS = ("google", "gemini")
+
+# Native (non-OpenAI-compatible) LLM providers — do not fall back to
+# OPENAI_API_KEY when their own env vars are unset.
+_NATIVE_LLM_PROVIDERS = ANTHROPIC_PROVIDERS + GOOGLE_PROVIDERS
+
 # Environment variables checked (in order) for each provider's API key.
 PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "anthropic": ("ANTHROPIC_API_KEY", "CLAUDE_API_KEY"),
     "claude": ("ANTHROPIC_API_KEY", "CLAUDE_API_KEY"),
+    "google": ("GOOGLE_API_KEY", "GEMINI_API_KEY"),
+    "gemini": ("GOOGLE_API_KEY", "GEMINI_API_KEY"),
     "deepseek": ("DEEPSEEK_API_KEY",),
     "orcarouter": ("ORCAROUTER_API_KEY",),
 }
@@ -101,7 +125,7 @@ def _env_api_key(provider: str) -> str:
         value = os.environ.get(var, "")
         if value:
             return value
-    if provider not in ANTHROPIC_PROVIDERS:
+    if provider not in _NATIVE_LLM_PROVIDERS:
         return os.environ.get("OPENAI_API_KEY", "")
     return ""
 
@@ -378,6 +402,28 @@ def create_llm(
             max_tokens=config.get("max_tokens", 4096),
         )
 
+    if provider in GOOGLE_PROVIDERS:
+        try:
+            from langchain_google_genai import ChatGoogleGenerativeAI
+        except ImportError as e:
+            raise ImportError(
+                "The Google / Gemini provider requires 'langchain-google-genai'. "
+                "Install it with: pip install 'hyperextract[google]'"
+            ) from e
+
+        resolved_key = config["api_key"] or _env_api_key(provider)
+        if not resolved_key:
+            raise ValueError(
+                "No Google API key found. Set GOOGLE_API_KEY (or GEMINI_API_KEY), "
+                "or pass api_key=..."
+            )
+
+        return ChatGoogleGenerativeAI(
+            model=config["model"],
+            api_key=resolved_key,
+            temperature=config.get("temperature", 0),
+        )
+
     from langchain_openai import ChatOpenAI
 
     # DeepSeek V4 models default to "thinking" mode, which rejects the
@@ -422,11 +468,19 @@ def create_embedder(
     """
     config = _parse_client_spec(spec, api_key=api_key, default_kind="embedder")
 
-    if config.get("provider", "") in ANTHROPIC_PROVIDERS:
+    provider = config.get("provider", "")
+    if provider in ANTHROPIC_PROVIDERS:
         raise ValueError(
             "Anthropic does not provide an embeddings API. Configure a separate "
             "OpenAI-compatible embedder, e.g. "
             'create_client(llm="anthropic", embedder="openai:text-embedding-3-small", ...) '
+            "or a local vLLM/bge-m3 endpoint."
+        )
+    if provider in GOOGLE_PROVIDERS:
+        raise ValueError(
+            "Google / Gemini has no mature embeddings path in this repo. Configure a "
+            "separate OpenAI-compatible embedder, e.g. "
+            'create_client(llm="google", embedder="openai:text-embedding-3-small", ...) '
             "or a local vLLM/bge-m3 endpoint."
         )
 

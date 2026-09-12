@@ -146,6 +146,11 @@ def test_cli_provider_tables_are_library_presets():
     assert cli_config.PROVIDER_API_KEY_ENV is PROVIDER_API_KEY_ENV
     assert "orcarouter" in cli_config.PROVIDER_PRESETS
     assert cli_config.PROVIDER_API_KEY_ENV["orcarouter"] == ("ORCAROUTER_API_KEY",)
+    assert "google" in cli_config.PROVIDER_PRESETS
+    assert cli_config.PROVIDER_API_KEY_ENV["google"] == (
+        "GOOGLE_API_KEY",
+        "GEMINI_API_KEY",
+    )
 
 
 def test_get_llm_config_reads_orcarouter_env_key(tmp_path, monkeypatch):
@@ -184,3 +189,19 @@ def test_interactive_init_lists_orcarouter_and_anthropic():
     source = inspect.getsource(init)
     assert '"orcarouter"' in source
     assert '"anthropic"' in source
+    assert '"google"' in source
+
+
+def test_get_llm_config_reads_google_env_key(tmp_path, monkeypatch):
+    """Empty toml api_key must resolve GOOGLE_API_KEY for google."""
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setenv("GOOGLE_API_KEY", "sk-google-from-env")
+
+    cm = ConfigManager(tmp_path / "config.toml")
+    cm.set_llm(provider="google", model="gemini-3.8-flash", api_key="")
+    cfg = cm.get_llm_config()
+
+    assert cfg.api_key == "sk-google-from-env"
+    assert cfg.base_url == ""

@@ -612,3 +612,91 @@ class TestProviderPresets:
             assert "base_url" in preset
             assert "default_llm" in preset
             assert "default_embedder" in preset
+
+    def test_google_provider(self):
+        """Native Gemini extra is wired (not OrcaRouter)."""
+        assert "google" in PROVIDER_PRESETS
+        preset = PROVIDER_PRESETS["google"]
+        assert preset["base_url"] == ""
+        assert preset["default_llm"] == "gemini-3.8-flash"
+        assert preset["default_embedder"] is None
+        assert PROVIDER_PRESETS["gemini"] == preset
+
+
+class TestGoogleGeminiProvider:
+    """Google / Gemini native client — no live API calls."""
+
+    def test_parse_google_defaults(self):
+        result = _parse_client_spec("google", api_key="sk-google")
+        assert result["provider"] == "google"
+        assert result["model"] == "gemini-3.8-flash"
+        assert result["base_url"] == ""
+
+    def test_parse_gemini_alias(self):
+        result = _parse_client_spec("gemini:gemini-2.5-flash", api_key="sk-google")
+        assert result["provider"] == "gemini"
+        assert result["model"] == "gemini-2.5-flash"
+
+    def test_env_prefers_google_then_gemini(self, monkeypatch):
+        from hyperextract.utils.client import _env_api_key
+
+        monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+        monkeypatch.setenv("GEMINI_API_KEY", "sk-gemini-only")
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-must-not-win")
+        assert _env_api_key("google") == "sk-gemini-only"
+
+        monkeypatch.setenv("GOOGLE_API_KEY", "sk-google-first")
+        assert _env_api_key("gemini") == "sk-google-first"
+
+    def test_env_does_not_fall_back_to_openai(self, monkeypatch):
+        from hyperextract.utils.client import _env_api_key
+
+        monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+        monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-must-not-win")
+        assert _env_api_key("google") == ""
+
+    def test_create_llm_uses_chat_google(self):
+        with patch("langchain_google_genai.ChatGoogleGenerativeAI") as MockChat:
+            create_llm("google:gemini-3.8-flash", api_key="sk-google-1")
+            MockChat.assert_called_once()
+            kwargs = MockChat.call_args.kwargs
+            assert kwargs["model"] == "gemini-3.8-flash"
+            assert kwargs["api_key"] == "sk-google-1"
+            assert kwargs["temperature"] == 0
+
+    def test_create_llm_env_key(self, monkeypatch):
+        monkeypatch.setenv("GOOGLE_API_KEY", "sk-google-env")
+        with patch("langchain_google_genai.ChatGoogleGenerativeAI") as MockChat:
+            create_llm("google")
+            assert MockChat.call_args.kwargs["api_key"] == "sk-google-env"
+
+    def test_create_llm_missing_key_raises(self, monkeypatch):
+        monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+        monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        with patch("langchain_google_genai.ChatGoogleGenerativeAI"):
+            with pytest.raises(ValueError, match="Google API key"):
+                create_llm("google")
+
+    def test_create_llm_missing_extra_import_error(self):
+        import builtins
+
+        real_import = builtins.__import__
+
+        def fake_import(name, *args, **kwargs):
+            if name == "langchain_google_genai" or name.startswith(
+                "langchain_google_genai."
+            ):
+                raise ImportError("simulated missing extra")
+            return real_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=fake_import):
+            with pytest.raises(ImportError, match="hyperextract\\[google\\]"):
+                create_llm("google", api_key="sk-google-1")
+
+    def test_create_embedder_raises(self):
+        with pytest.raises(ValueError, match="embeddings"):
+            create_embedder("google", api_key="sk-google")
+        with pytest.raises(ValueError, match="embeddings"):
+            create_embedder("gemini", api_key="sk-google")

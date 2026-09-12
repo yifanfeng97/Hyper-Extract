@@ -1,6 +1,6 @@
 # Provider System
 
-Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, and **local vLLM**. All use the same `create_client()` interface — only the first line changes.
+Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, and **local vLLM**. All use the same `create_client()` interface — only the first line changes.
 
 ---
 
@@ -12,6 +12,7 @@ Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**,
 |----------|-------|:----------------:|:----------:|-------|
 | **OpenAI** | gpt-4o / gpt-4o-mini / gpt-5 | ✅ | ✅ | Native support, recommended |
 | **Anthropic** | claude-opus-4-8 / claude-sonnet-4-6 / claude-haiku-4-5 | ✅ (tool calling) | ✅ | LLM only — no embeddings API (pair with an OpenAI-compatible embedder). Needs `hyperextract[anthropic]` |
+| **Google Gemini** | gemini-3.8-flash / gemini-2.5-flash / gemini-2.5-pro | ✅ (tool calling) | ✅ | LLM only — no embedder path in this repo (pair with an OpenAI-compatible embedder). Needs `hyperextract[google]`. Keys: `GOOGLE_API_KEY` or `GEMINI_API_KEY`. Alias: `gemini` |
 | **DeepSeek** | deepseek-v4-flash / deepseek-v4-pro | ✅ | ✅ | OpenAI-compatible. V4 models default to "thinking" mode, which Hyper-Extract auto-disables (`extra_body`) so structured extraction works. LLM only — no embeddings API. Keys: `DEEPSEEK_API_KEY` |
 | **OrcaRouter** | `orcarouter/auto`, `openai/gpt-4o-mini`, `anthropic/claude-haiku-4-5`, `deepseek/...`, `gemini/...` | ✅ | ✅ | OpenAI-compatible gateway routing 150+ models from OpenAI, Anthropic, Google, DeepSeek, Qwen, MiniMax, xAI behind one endpoint and key. Keys: `ORCAROUTER_API_KEY` |
 | **Alibaba Bailian** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | Works out of the box |
@@ -51,6 +52,15 @@ llm, emb = create_client("bailian", api_key="sk-xxx")
 # Keys: ANTHROPIC_API_KEY (or CLAUDE_API_KEY) for the LLM, OPENAI_API_KEY for embeddings.
 llm, emb = create_client(
     llm="anthropic",  # default model: claude-opus-4-8 (override with "anthropic:<model>")
+    embedder="openai:text-embedding-3-small",
+)
+
+# Google Gemini — native ChatGoogleGenerativeAI (not the OrcaRouter gemini/...
+# gateway). LLM only; pair with an OpenAI-compatible embedder.
+# Keys: GOOGLE_API_KEY (or GEMINI_API_KEY). Alias: "gemini".
+# Extra: pip install 'hyperextract[google]'.
+llm, emb = create_client(
+    llm="google",  # default model: gemini-3.8-flash (override with "google:<model>")
     embedder="openai:text-embedding-3-small",
 )
 

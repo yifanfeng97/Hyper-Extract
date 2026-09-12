@@ -151,7 +151,7 @@ def llm(
         None,
         "--provider",
         "-p",
-        help="Provider preset: openai, anthropic, deepseek, bailian, orcarouter, vllm",
+        help="Provider preset: openai, anthropic, google, deepseek, bailian, orcarouter, vllm",
     ),
     api_key: str | None = typer.Option(
         None,
@@ -212,7 +212,7 @@ def embedder(
         None,
         "--provider",
         "-p",
-        help="Provider preset: openai, anthropic, deepseek, bailian, orcarouter, vllm",
+        help="Provider preset: openai, anthropic, google, deepseek, bailian, orcarouter, vllm",
     ),
     api_key: str | None = typer.Option(
         None,
@@ -275,7 +275,7 @@ def init(
         None,
         "--provider",
         "-p",
-        help="Provider preset: openai, anthropic, deepseek, bailian, orcarouter, vllm",
+        help="Provider preset: openai, anthropic, google, deepseek, bailian, orcarouter, vllm",
     ),
     api_key: str | None = typer.Option(
         None,
@@ -374,6 +374,7 @@ def init(
         ("deepseek", "DeepSeek", "https://api.deepseek.com"),
         ("orcarouter", "OrcaRouter", "https://api.orcarouter.ai/v1"),
         ("anthropic", "Anthropic (Claude)", "native SDK"),
+        ("google", "Google Gemini", "native SDK"),
         ("vllm", "本地 vLLM", "自定义地址"),
         ("custom", "其他 OpenAI 兼容接口", "自定义地址"),
     ]

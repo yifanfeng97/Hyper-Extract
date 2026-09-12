@@ -1,6 +1,6 @@
 # Provider 系统
 
-Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**阿里云百炼**、**DeepSeek**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
+Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
 
 ---
 
@@ -12,6 +12,7 @@ Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**阿里�
 |------|------|:--------:|:------:|------|
 | **OpenAI** | gpt-4o / gpt-4o-mini / gpt-5 | ✅ | ✅ | 官方原生支持，推荐 |
 | **Anthropic** | claude-opus-4-8 / claude-sonnet-4-6 / claude-haiku-4-5 | ✅（工具调用） | ✅ | 仅 LLM——无嵌入接口（请搭配 OpenAI 兼容嵌入器）。需 `hyperextract[anthropic]` |
+| **Google Gemini** | gemini-3.8-flash / gemini-2.5-flash / gemini-2.5-pro | ✅（工具调用） | ✅ | 仅 LLM——本仓库无成熟嵌入路径（请搭配 OpenAI 兼容嵌入器）。需 `hyperextract[google]`。密钥：`GOOGLE_API_KEY` 或 `GEMINI_API_KEY`。别名：`gemini` |
 | **DeepSeek** | deepseek-v4-flash / deepseek-v4-pro | ✅ | ✅ | OpenAI 兼容。V4 模型默认开启"thinking"模式，Hyper-Extract 会自动关闭以保证结构化抽取可用。仅 LLM——无嵌入接口。密钥：`DEEPSEEK_API_KEY` |
 | **阿里云百炼** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | 直接使用，无需修改 |
 | **阿里云百炼** | qwen-max / deepseek-v3 | ❌ | ❌ | 仅支持 `json_object`，不兼容 function calling 结构化输出 |
@@ -49,6 +50,15 @@ llm, emb = create_client("bailian", api_key="sk-xxx")
 # 密钥：LLM 用 ANTHROPIC_API_KEY（或 CLAUDE_API_KEY），嵌入用 OPENAI_API_KEY。
 llm, emb = create_client(
     llm="anthropic",  # 默认模型：claude-opus-4-8（用 "anthropic:<model>" 覆盖）
+    embedder="openai:text-embedding-3-small",
+)
+
+# Google Gemini —— 原生 ChatGoogleGenerativeAI（不是 OrcaRouter 的 gemini/... 网关）。
+# 仅 LLM；请搭配 OpenAI 兼容嵌入器。
+# 密钥：GOOGLE_API_KEY（或 GEMINI_API_KEY）。别名："gemini"。
+# 额外依赖：pip install 'hyperextract[google]'。
+llm, emb = create_client(
+    llm="google",  # 默认模型：gemini-3.8-flash（用 "google:<model>" 覆盖）
     embedder="openai:text-embedding-3-small",
 )
 
