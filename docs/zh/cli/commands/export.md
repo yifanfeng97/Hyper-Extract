@@ -2,7 +2,7 @@
 
 将知识摘要导出为 [Obsidian](https://obsidian.md) 知识库——一个由 `[[双向链接]]` 关联的 Markdown 笔记文件夹。
 
-`export` 是一个命令组。目前支持的格式：`obsidian`、`graphml`、`csv`。
+`export` 是一个命令组。目前支持的格式：`obsidian`、`graphml`、`jsonld`、`csv`。
 
 ---
 
@@ -165,6 +165,34 @@ he export graphml ./tesla_kb/ -o ./tesla.graphml
 
 ---
 
+## he export jsonld
+
+将知识图谱导出为 JSON-LD（标准库 `json`，不引入 RDFLib）。二元边为 `@type: Edge`，带 `source` / `target`。三个及以上端点的边为 `@type: Hyperedge`，`endpoint` 列表保持抽取器顺序（不排序）。0/1 个端点或缺失端点的边会跳过并记 warning，与 GraphML 一致。
+
+目标文件已存在且非空时需要 `--force` / `-f`。
+
+### 用法
+
+```bash
+he export jsonld KA_PATH -o FILE.jsonld [--force]
+```
+
+### 选项
+
+| 选项 | 别名 | 默认值 | 说明 |
+|--------|-------|---------|-------------|
+| `--output` | `-o` | *(必填)* | 输出 JSON-LD 文件 |
+| `--force` | `-f` | 关闭 | 覆盖已存在的非空文件 |
+
+### 示例
+
+```bash
+he export jsonld ./tesla_kb/ -o ./tesla.jsonld
+he export jsonld ./tesla_kb/ -o ./tesla.jsonld --force
+```
+
+---
+
 ## he export csv
 
 将节点和边导出为 CSV 表，便于电子表格以及读取边列表的图谱工具使用。
@@ -215,12 +243,12 @@ he export csv ./tesla_kb/ -o ./tesla_csv/ --force
 
 ## Python API
 
-Obsidian 导出是图谱 Auto-Type 上的方法；GraphML / CSV 是独立纯函数（不会加到 AutoType 上）：
+Obsidian 导出是图谱 Auto-Type 上的方法；GraphML / CSV / JSON-LD 是独立纯函数（不会加到 AutoType 上）：
 
 ```python
 ka.export_obsidian("./tesla_vault/", vault_name="Tesla KB", overwrite=True)
 
-from hyperextract.utils.exporters import export_to_graphml, export_to_csv
+from hyperextract.utils.exporters import export_to_graphml, export_to_csv, export_to_jsonld
 
 export_to_graphml(
     ka.nodes,
@@ -237,6 +265,14 @@ export_to_csv(
     incident_nodes_extractor=ka.nodes_in_edge_extractor,
     folder_path="./tesla_csv/",
     overwrite=True,
+)
+
+export_to_jsonld(
+    ka.nodes,
+    ka.edges,
+    node_id_extractor=ka.node_key_extractor,
+    incident_nodes_extractor=ka.nodes_in_edge_extractor,
+    file_path="./tesla.jsonld",
 )
 ```
 

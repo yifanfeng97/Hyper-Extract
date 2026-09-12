@@ -19,6 +19,7 @@ from hyperextract.utils.exporters import (
     HYPEREDGE_MEMBER_SEP,
     export_to_csv,
     export_to_graphml,
+    export_to_jsonld,
 )
 from hyperextract.utils.exporters.graphml import GRAPHML_NS
 
@@ -204,6 +205,88 @@ class TestGraphMLPairwise:
         ]
         assert endpoints == ["C", "A", "B"]
         assert _edge_endpoints(graph, ns) == []
+
+
+# ---------------------------------------------------------------------------
+# JSON-LD — pairwise source/target, N-ary Hyperedge order
+# ---------------------------------------------------------------------------
+
+
+def _load_jsonld(path):
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+class TestJSONLDExport:
+    def test_pairwise_has_source_target(self, tmp_path):
+        nodes = [Entity(name="A"), Entity(name="B")]
+        edges = [Relation(source="B", target="A", relation_type="leads_to")]
+        path = export_to_jsonld(
+            nodes,
+            edges,
+            node_id_extractor=lambda n: n.name,
+            incident_nodes_extractor=lambda e: (e.source, e.target),
+            file_path=tmp_path / "g.jsonld",
+        )
+        doc = _load_jsonld(path)
+        assert "source" in doc["@context"]
+        assert doc["@context"]["source"]["@type"] == "@id"
+        assert doc["@context"]["endpoint"]["@container"] == "@list"
+        edges_out = [item for item in doc["@graph"] if item.get("@type") == "Edge"]
+        assert len(edges_out) == 1
+        assert edges_out[0]["source"] == "B"
+        assert edges_out[0]["target"] == "A"
+        assert edges_out[0]["@type"] == "Edge"
+        assert not any(item.get("@type") == "Hyperedge" for item in doc["@graph"])
+
+    def test_nary_writes_hyperedge_in_extractor_order(self, tmp_path):
+        nodes = [Entity(name="A"), Entity(name="B"), Entity(name="C")]
+        edges = [Event(label="meeting", participants=["C", "A", "B"])]
+        path = export_to_jsonld(
+            nodes,
+            edges,
+            node_id_extractor=lambda n: n.name,
+            incident_nodes_extractor=lambda e: tuple(e.participants),
+            file_path=tmp_path / "g.jsonld",
+            edge_id_extractor=lambda e: e.label,
+        )
+        doc = _load_jsonld(path)
+        hypers = [item for item in doc["@graph"] if item.get("@type") == "Hyperedge"]
+        assert len(hypers) == 1
+        assert hypers[0]["@type"] == "Hyperedge"
+        assert hypers[0]["endpoint"] == ["C", "A", "B"]
+        assert hypers[0]["endpoint"] != sorted(hypers[0]["endpoint"])
+        assert not any(item.get("@type") == "Edge" for item in doc["@graph"])
+
+    def test_unary_and_missing_endpoints_are_skipped(self, tmp_path):
+        nodes = [Entity(name="Apple")]
+        edges = [
+            Event(label="solo", participants=["Apple"]),
+            Relation(source="Apple", target="Ghost", relation_type="x"),
+        ]
+
+        def _incident(edge):
+            if isinstance(edge, Event):
+                return tuple(edge.participants)
+            return (edge.source, edge.target)
+
+        path = export_to_jsonld(
+            nodes,
+            edges,
+            node_id_extractor=lambda n: n.name,
+            incident_nodes_extractor=_incident,
+            file_path=tmp_path / "g.jsonld",
+        )
+        doc = _load_jsonld(path)
+        typed = [
+            item
+            for item in doc["@graph"]
+            if item.get("@type") in ("Edge", "Hyperedge")
+        ]
+        nodes_out = [
+            item["@id"] for item in doc["@graph"] if item.get("@type") == "Node"
+        ]
+        assert typed == []
+        assert nodes_out == ["Apple"]
 
 
 # ---------------------------------------------------------------------------
@@ -484,3 +567,85 @@ class TestCLIExport:
             )
         assert result.exit_code == 1
         assert "graph" in result.output.lower()
+
+    def test_jsonld_writes_pairwise_and_hyperedge(self, tmp_path):
+        ka_dir = _ka_dir(tmp_path)
+        fake = FakeGraphKA(
+            [Entity(name="A"), Entity(name="B")],
+            [Relation(source="B", target="A", relation_type="leads_to")],
+        )
+        out = tmp_path / "out.jsonld"
+        with (
+            patch("hyperextract.cli.cli.validate_config"),
+            patch(
+                "hyperextract.cli.cli.get_template_from_ka", return_value=("t", "en")
+            ),
+            patch("hyperextract.cli.cli.Template.create", return_value=fake),
+        ):
+            result = runner.invoke(
+                app, ["export", "jsonld", str(ka_dir), "-o", str(out)]
+            )
+        assert result.exit_code == 0, result.output
+        doc = _load_jsonld(out)
+        edges_out = [item for item in doc["@graph"] if item.get("@type") == "Edge"]
+        assert edges_out[0]["source"] == "B"
+        assert edges_out[0]["target"] == "A"
+
+        fake_h = FakeGraphKA(
+            [Entity(name="A"), Entity(name="B"), Entity(name="C")],
+            [Event(label="meeting", participants=["C", "A", "B"])],
+            hypergraph=True,
+        )
+        out_h = tmp_path / "h.jsonld"
+        with (
+            patch("hyperextract.cli.cli.validate_config"),
+            patch(
+                "hyperextract.cli.cli.get_template_from_ka", return_value=("t", "en")
+            ),
+            patch("hyperextract.cli.cli.Template.create", return_value=fake_h),
+        ):
+            result = runner.invoke(
+                app, ["export", "jsonld", str(ka_dir), "-o", str(out_h)]
+            )
+        assert result.exit_code == 0, result.output
+        doc_h = _load_jsonld(out_h)
+        hypers = [item for item in doc_h["@graph"] if item.get("@type") == "Hyperedge"]
+        assert hypers[0]["endpoint"] == ["C", "A", "B"]
+
+    def test_jsonld_requires_force_for_existing_file(self, tmp_path):
+        ka_dir = _ka_dir(tmp_path)
+        dest = tmp_path / "out.jsonld"
+        dest.write_text("SENTINEL", encoding="utf-8")
+        fake = FakeGraphKA([Entity(name="A")], [])
+        with (
+            patch("hyperextract.cli.cli.validate_config"),
+            patch(
+                "hyperextract.cli.cli.get_template_from_ka", return_value=("t", "en")
+            ),
+            patch("hyperextract.cli.cli.Template.create", return_value=fake),
+        ):
+            result = runner.invoke(
+                app, ["export", "jsonld", str(ka_dir), "-o", str(dest)]
+            )
+        assert result.exit_code != 0
+        assert "--force" in result.output or "-f" in result.output
+        assert dest.read_text(encoding="utf-8") == "SENTINEL"
+
+    def test_jsonld_force_overwrites_existing_file(self, tmp_path):
+        ka_dir = _ka_dir(tmp_path)
+        dest = tmp_path / "out.jsonld"
+        dest.write_text("SENTINEL", encoding="utf-8")
+        fake = FakeGraphKA([Entity(name="A")], [])
+        with (
+            patch("hyperextract.cli.cli.validate_config"),
+            patch(
+                "hyperextract.cli.cli.get_template_from_ka", return_value=("t", "en")
+            ),
+            patch("hyperextract.cli.cli.Template.create", return_value=fake),
+        ):
+            result = runner.invoke(
+                app, ["export", "jsonld", str(ka_dir), "-o", str(dest), "--force"]
+            )
+        assert result.exit_code == 0, result.output
+        doc = _load_jsonld(dest)
+        assert any(item.get("@type") == "Node" for item in doc["@graph"])

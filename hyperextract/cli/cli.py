@@ -574,8 +574,8 @@ def _load_graph_ka_for_export(ka_path: str):
 
     if not hasattr(ka, "export_obsidian"):
         console.print(
-            "[red]Error:[/red] GraphML/CSV export is only supported for graph-type "
-            "Knowledge Abstracts (graph, hypergraph, temporal/spatial graphs)."
+            "[red]Error:[/red] GraphML/CSV/JSON-LD export is only supported for "
+            "graph-type Knowledge Abstracts (graph, hypergraph, temporal/spatial graphs)."
         )
         raise typer.Exit(1)
 
@@ -633,6 +633,60 @@ def export_graphml_cmd(
     console.print(f"[bold green]Success![/bold green] Wrote GraphML to {output_path}")
     console.print()
     console.print("[dim]Open the file in Gephi, yEd, or another GraphML tool.[/dim]")
+
+
+@export_app.command(name="jsonld")
+def export_jsonld_cmd(
+    ka_path: str = typer.Argument(..., help="Knowledge Abstract directory"),
+    output: str = typer.Option(..., "--output", "-o", help="Output JSON-LD file"),
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Overwrite an existing JSON-LD file"
+    ),
+):
+    """Export a knowledge graph to JSON-LD.
+
+    Binary edges are `@type: Edge` with source/target. Edges with three
+    or more endpoints are `@type: Hyperedge` with an endpoint list.
+    """
+    from hyperextract.utils.exporters import export_to_jsonld
+
+    logger.info("command=export-jsonld ka_path=%s output=%s", ka_path, output)
+
+    output_path = Path(output)
+    existing_nonempty = (
+        output_path.exists()
+        and output_path.is_file()
+        and output_path.stat().st_size > 0
+    )
+    if existing_nonempty and not force:
+        console.print(
+            "[red]Error:[/red] Output file already exists. "
+            "Use --force / -f to overwrite it."
+        )
+        raise typer.Exit(1)
+
+    ka, _path, template = _load_graph_ka_for_export(ka_path)
+    console.print(f"[blue]Knowledge Abstract:[/blue] {ka_path}")
+    console.print(f"[blue]Template:[/blue] {template}")
+    console.print(f"[blue]Output file:[/blue] {output}")
+    console.print()
+
+    with console.status("[bold blue]Exporting to JSON-LD..."):
+        try:
+            export_to_jsonld(
+                ka.nodes,
+                ka.edges,
+                node_id_extractor=ka.node_key_extractor,
+                incident_nodes_extractor=ka.nodes_in_edge_extractor,
+                file_path=output_path,
+                edge_id_extractor=getattr(ka, "edge_key_extractor", None),
+            )
+        except Exception as e:
+            console.print(f"[red]Error during export:[/red] {e}")
+            raise typer.Exit(1)
+
+    console.print()
+    console.print(f"[bold green]Success![/bold green] Wrote JSON-LD to {output_path}")
 
 
 @export_app.command(name="csv")

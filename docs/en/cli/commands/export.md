@@ -2,7 +2,7 @@
 
 Export a knowledge abstract to an [Obsidian](https://obsidian.md) vault — a folder of Markdown notes linked by `[[wikilinks]]`.
 
-`export` is a command group. Formats: `obsidian`, `graphml`, `csv`.
+`export` is a command group. Formats: `obsidian`, `graphml`, `jsonld`, `csv`.
 
 ---
 
@@ -165,6 +165,34 @@ he export graphml ./tesla_kb/ -o ./tesla.graphml
 
 ---
 
+## he export jsonld
+
+Export a knowledge graph to JSON-LD (stdlib `json`, no RDFLib). Binary edges are `@type: Edge` with `source` / `target`. Edges with three or more endpoints are `@type: Hyperedge` with an `endpoint` list in extractor order (never sorted). 0/1-endpoint or missing-endpoint edges are skipped with a warning, same as GraphML.
+
+Existing non-empty output files require `--force` / `-f`.
+
+### Synopsis
+
+```bash
+he export jsonld KA_PATH -o FILE.jsonld [--force]
+```
+
+### Options
+
+| Option | Alias | Default | Description |
+|--------|-------|---------|-------------|
+| `--output` | `-o` | *(required)* | Output JSON-LD file |
+| `--force` | `-f` | off | Overwrite an existing non-empty file |
+
+### Examples
+
+```bash
+he export jsonld ./tesla_kb/ -o ./tesla.jsonld
+he export jsonld ./tesla_kb/ -o ./tesla.jsonld --force
+```
+
+---
+
 ## he export csv
 
 Export nodes and edges as CSV tables for spreadsheets and graph tools that ingest edge lists.
@@ -215,12 +243,12 @@ he export csv ./tesla_kb/ -o ./tesla_csv/ --force
 
 ## Python API
 
-The same capability is available on graph Auto-Types for Obsidian, and as standalone functions for GraphML / CSV (they are not methods on AutoType):
+The same capability is available on graph Auto-Types for Obsidian, and as standalone functions for GraphML / CSV / JSON-LD (they are not methods on AutoType):
 
 ```python
 ka.export_obsidian("./tesla_vault/", vault_name="Tesla KB", overwrite=True)
 
-from hyperextract.utils.exporters import export_to_graphml, export_to_csv
+from hyperextract.utils.exporters import export_to_graphml, export_to_csv, export_to_jsonld
 
 export_to_graphml(
     ka.nodes,
@@ -237,6 +265,14 @@ export_to_csv(
     incident_nodes_extractor=ka.nodes_in_edge_extractor,
     folder_path="./tesla_csv/",
     overwrite=True,
+)
+
+export_to_jsonld(
+    ka.nodes,
+    ka.edges,
+    node_id_extractor=ka.node_key_extractor,
+    incident_nodes_extractor=ka.nodes_in_edge_extractor,
+    file_path="./tesla.jsonld",
 )
 ```
 
