@@ -126,6 +126,8 @@ class TestCLINoVerboseFlag:
         assert "he tag" in result.output
         assert "he remove" in result.output
         assert "he clean" in result.output
+        assert "hyperedge" in result.output
+        assert "pairwise" in result.output
 
     def test_info_missing_ka_exits_with_error(self):
         """he info <nonexistent> exits with error."""

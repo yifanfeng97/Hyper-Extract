@@ -146,6 +146,7 @@ he export graphml KA_PATH -o FILE.graphml
 | 选项 | 别名 | 默认值 | 说明 |
 |--------|-------|---------|-------------|
 | `--output` | `-o` | *(必填)* | 输出 GraphML 文件 |
+| `--force` | `-f` | `false` | 覆盖已存在的非空 GraphML 文件 |
 
 ### 说明
 
@@ -153,6 +154,7 @@ he export graphml KA_PATH -o FILE.graphml
 - **N 元超边。** 3 个及以上端点的边写成 `<hyperedge>`，并按 `incident_nodes_extractor` 的返回顺序写出 `<endpoint node="…"/>`。端点不会被排序。
 - **属性。** 节点 / 边 `model_dump()` 中的标量字段（`str` / `int` / `float` / `bool`）成为 GraphML `<data>` 键。嵌套值转为字符串。XML 特殊字符（`& < > " '`）会被转义。
 - **悬空边。** 源或目标节点缺失的二元边（或任一端点缺失的超边）会被跳过（并记录 warning），不会导致崩溃。
+- **0/1 个端点的边。** 端点少于两个的边会被跳过并记录 warning。本导出不会发明一元 GraphML 编码。
 
 支持的 Auto-Type：`AutoGraph`、`AutoHypergraph` 及其时空子类。非图谱类型（`AutoList`、`AutoSet`、`AutoModel`）不支持。
 

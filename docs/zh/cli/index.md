@@ -33,7 +33,7 @@ he --version
 | `he parse` | 从文档提取知识 | `-t` 模板, `-o` 输出, `-l` 语言, `--source` 来源标注 |
 | `he show` | 可视化知识图谱 | — |
 | `he export obsidian` | 导出为 Obsidian 知识库 | `-o` 输出, `--name`, `-f` 强制 |
-| `he export graphml` | 将二元图导出为 GraphML | `-o` 输出文件 |
+| `he export graphml` | 导出二元 `<edge>` 与 N 元 `<hyperedge>` GraphML | `-o` 输出文件, `-f` 强制 |
 | `he export csv` | 将节点/边导出为 CSV 表 | `-o` 目录, `-f` 强制 |
 | `he search` | 知识库语义搜索 | `-n` top-k 结果数, `--source`, `--tag` |
 | `he talk` | 与知识库对话 | `-i` 交互模式, `-q` 查询 |
@@ -172,7 +172,7 @@ he show ./output/
 - **[`he talk`](commands/talk.md)** — 与知识库对话
 - **[`he info`](commands/info.md)** — 查看知识库统计信息
 - **[`he export obsidian`](commands/export.md)** — 导出为 Obsidian 知识库
-- **[`he export graphml`](commands/export.md#he-export-graphml)** — 将二元图导出为 GraphML
+- **[`he export graphml`](commands/export.md#he-export-graphml)** — 导出二元 `<edge>` 与 N 元 `<hyperedge>` GraphML
 - **[`he export csv`](commands/export.md#he-export-csv)** — 将节点/边导出为 CSV 表
 
 ### 管理

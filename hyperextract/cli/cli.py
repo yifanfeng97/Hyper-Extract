@@ -145,7 +145,7 @@ def main(
                     ),
                     (
                         "he export graphml <ka_path> -o <file>",
-                        "Export pairwise graph to GraphML",
+                        "pairwise <edge> + <hyperedge>",
                     ),
                     (
                         "he export csv <ka_path> -o <dir>",
@@ -594,6 +594,9 @@ def _is_hypergraph_ka(ka) -> bool:
 def export_graphml_cmd(
     ka_path: str = typer.Argument(..., help="Knowledge Abstract directory"),
     output: str = typer.Option(..., "--output", "-o", help="Output GraphML file"),
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Overwrite an existing GraphML file"
+    ),
 ):
     """Export a knowledge graph to GraphML.
 
@@ -604,9 +607,20 @@ def export_graphml_cmd(
 
     logger.info("command=export-graphml ka_path=%s output=%s", ka_path, output)
 
-    ka, _path, template = _load_graph_ka_for_export(ka_path)
-
     output_path = Path(output)
+    existing_nonempty = (
+        output_path.exists()
+        and output_path.is_file()
+        and output_path.stat().st_size > 0
+    )
+    if existing_nonempty and not force:
+        console.print(
+            "[red]Error:[/red] Output file already exists. "
+            "Use --force / -f to overwrite it."
+        )
+        raise typer.Exit(1)
+
+    ka, _path, template = _load_graph_ka_for_export(ka_path)
     console.print(f"[blue]Knowledge Abstract:[/blue] {ka_path}")
     console.print(f"[blue]Template:[/blue] {template}")
     console.print(f"[blue]Output file:[/blue] {output}")

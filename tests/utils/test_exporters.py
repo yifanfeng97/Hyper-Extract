@@ -432,6 +432,25 @@ class TestCLIExport:
         assert (out / "hyperedges.csv").exists()
         assert not (out / "edges.csv").exists()
 
+    def test_graphml_requires_force_for_existing_file(self, tmp_path):
+        ka_dir = _ka_dir(tmp_path)
+        dest = tmp_path / "out.graphml"
+        dest.write_text("KEEP-ME", encoding="utf-8")
+        fake = FakeGraphKA([Entity(name="A")], [])
+        with (
+            patch("hyperextract.cli.cli.validate_config"),
+            patch(
+                "hyperextract.cli.cli.get_template_from_ka", return_value=("t", "en")
+            ),
+            patch("hyperextract.cli.cli.Template.create", return_value=fake),
+        ):
+            result = runner.invoke(
+                app, ["export", "graphml", str(ka_dir), "-o", str(dest)]
+            )
+        assert result.exit_code != 0
+        assert "--force" in result.output or "-f" in result.output
+        assert dest.read_text(encoding="utf-8") == "KEEP-ME"
+
     def test_csv_requires_force_for_nonempty_dir(self, tmp_path):
         ka_dir = _ka_dir(tmp_path)
         dest = tmp_path / "csv_out"

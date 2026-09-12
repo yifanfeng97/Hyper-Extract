@@ -146,6 +146,7 @@ he export graphml KA_PATH -o FILE.graphml
 | Option | Alias | Default | Description |
 |--------|-------|---------|-------------|
 | `--output` | `-o` | *(required)* | Output GraphML file |
+| `--force` | `-f` | `false` | Overwrite an existing, non-empty GraphML file |
 
 ### Description
 
@@ -153,6 +154,7 @@ he export graphml KA_PATH -o FILE.graphml
 - **N-ary hyperedges.** An edge with 3+ incident nodes becomes `<hyperedge>` plus `<endpoint node="…"/>` in the same order `incident_nodes_extractor` returns. Endpoints are never sorted.
 - **Attributes.** Scalar fields from each node's / edge's `model_dump()` (`str` / `int` / `float` / `bool`) become GraphML `<data>` keys. Nested values are stringified. XML special characters (`& < > " '`) are escaped.
 - **Dangling edges.** An edge whose source or target node is missing (or a hyperedge with any missing endpoint) is skipped (with a warning), not treated as a crash.
+- **0/1-endpoint edges.** Edges with fewer than two endpoints are skipped with a warning. This export does not invent a unary GraphML encoding.
 
 Supported Auto-Types: `AutoGraph`, `AutoHypergraph`, and temporal/spatial subclasses. Non-graph types (`AutoList`, `AutoSet`, `AutoModel`) are not supported.
 
