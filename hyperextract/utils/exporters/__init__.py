@@ -1,4 +1,4 @@
-"""Read-only graph exporters (GraphML, CSV).
+"""Read-only graph exporters (GraphML, CSV, Cypher).
 
 These are pure functions over node/edge models, matching
 :func:`hyperextract.utils.obsidian.export_to_obsidian`. They are not methods
@@ -19,11 +19,13 @@ Example::
 
 from .common import HYPEREDGE_MEMBER_SEP
 from .csv_export import export_to_csv
+from .cypher import export_to_cypher
 from .graphml import GraphMLHypergraphError, export_to_graphml
 
 __all__ = [
     "HYPEREDGE_MEMBER_SEP",
     "GraphMLHypergraphError",
     "export_to_csv",
+    "export_to_cypher",
     "export_to_graphml",
 ]

@@ -18,6 +18,7 @@ from hyperextract.cli.cli import app
 from hyperextract.utils.exporters import (
     HYPEREDGE_MEMBER_SEP,
     export_to_csv,
+    export_to_cypher,
     export_to_graphml,
 )
 from hyperextract.utils.exporters.graphml import GRAPHML_NS
@@ -204,6 +205,102 @@ class TestGraphMLPairwise:
         ]
         assert endpoints == ["C", "A", "B"]
         assert _edge_endpoints(graph, ns) == []
+
+
+# ---------------------------------------------------------------------------
+# Cypher — pairwise REL, N-ary Hyperedge (no clique)
+# ---------------------------------------------------------------------------
+
+
+class TypedRel(BaseModel):
+    source: str
+    target: str
+    type: str
+
+
+class TestCypherExport:
+    def test_pairwise_uses_rel_and_direction(self, tmp_path):
+        nodes = [Entity(name="A"), Entity(name="B")]
+        edges = [Relation(source="B", target="A", relation_type="leads_to")]
+        path = export_to_cypher(
+            nodes,
+            edges,
+            node_id_extractor=lambda n: n.name,
+            incident_nodes_extractor=lambda e: (e.source, e.target),
+            file_path=tmp_path / "g.cypher",
+        )
+        text = path.read_text(encoding="utf-8")
+        assert 'MERGE (n:Node {id: "A"})' in text
+        assert 'MERGE (n:Node {id: "B"})' in text
+        assert ":REL" in text
+        assert 'id: "B"' in text
+        assert ']->(b)' in text
+        assert text.index('MERGE (a:Node {id: "B"})') < text.index(
+            'MERGE (b:Node {id: "A"})'
+        )
+
+    def test_legal_type_becomes_rel_ident(self, tmp_path):
+        nodes = [Entity(name="A"), Entity(name="B")]
+        edges = [TypedRel(source="A", target="B", type="KNOWS")]
+        path = export_to_cypher(
+            nodes,
+            edges,
+            node_id_extractor=lambda n: n.name,
+            incident_nodes_extractor=lambda e: (e.source, e.target),
+            file_path=tmp_path / "g.cypher",
+        )
+        assert ":KNOWS" in path.read_text(encoding="utf-8")
+
+    def test_nary_is_hyperedge_not_clique(self, tmp_path):
+        nodes = [Entity(name="A"), Entity(name="B"), Entity(name="C")]
+        edges = [Event(label="meeting", participants=["C", "A", "B"])]
+        path = export_to_cypher(
+            nodes,
+            edges,
+            node_id_extractor=lambda n: n.name,
+            incident_nodes_extractor=lambda e: tuple(e.participants),
+            file_path=tmp_path / "g.cypher",
+            edge_id_extractor=lambda e: e.label,
+        )
+        text = path.read_text(encoding="utf-8")
+        assert ":Hyperedge" in text
+        assert "[:IN]" in text
+        assert text.count("[:IN]") == 3
+        in_order = [
+            line
+            for line in text.splitlines()
+            if "[:IN]" in line or "MERGE (n:Node {id:" in line
+        ]
+        member_ids = [
+            line.split('id: "')[1].split('"')[0]
+            for line in in_order
+            if "MERGE (n:Node {id:" in line
+            and "Hyperedge" not in line
+            and line.split('id: "')[1].split('"')[0] in {"A", "B", "C"}
+        ]
+        # Membership MERGEs after the Hyperedge, in extractor order C, A, B
+        assert member_ids[-3:] == ["C", "A", "B"]
+        assert "-[:REL]" not in text
+        assert not any(
+            pair in text
+            for pair in (
+                '(a)-[r:REL {id: "C-A"}]',
+                '(a)-[r:REL {id: "A-B"}]',
+                '(a)-[r:REL {id: "C-B"}]',
+            )
+        )
+
+    def test_escapes_backslash_and_quote(self, tmp_path):
+        nodes = [Entity(name='say "hi"\\')]
+        path = export_to_cypher(
+            nodes,
+            [],
+            node_id_extractor=lambda n: n.name,
+            incident_nodes_extractor=lambda e: (),
+            file_path=tmp_path / "g.cypher",
+        )
+        text = path.read_text(encoding="utf-8")
+        assert r"say \"hi\"\\" in text
 
 
 # ---------------------------------------------------------------------------
@@ -484,3 +581,46 @@ class TestCLIExport:
             )
         assert result.exit_code == 1
         assert "graph" in result.output.lower()
+
+    def test_cypher_writes_hyperedge_membership(self, tmp_path):
+        ka_dir = _ka_dir(tmp_path)
+        fake = FakeGraphKA(
+            [Entity(name="A"), Entity(name="B"), Entity(name="C")],
+            [Event(label="meeting", participants=["C", "A", "B"])],
+            hypergraph=True,
+        )
+        out = tmp_path / "out.cypher"
+        with (
+            patch("hyperextract.cli.cli.validate_config"),
+            patch(
+                "hyperextract.cli.cli.get_template_from_ka", return_value=("t", "en")
+            ),
+            patch("hyperextract.cli.cli.Template.create", return_value=fake),
+        ):
+            result = runner.invoke(
+                app, ["export", "cypher", str(ka_dir), "-o", str(out)]
+            )
+        assert result.exit_code == 0, result.output
+        text = out.read_text(encoding="utf-8")
+        assert ":Hyperedge" in text
+        assert "[:IN]" in text
+        assert "-[:REL]->" not in text
+
+    def test_cypher_requires_force_for_existing_file(self, tmp_path):
+        ka_dir = _ka_dir(tmp_path)
+        dest = tmp_path / "out.cypher"
+        dest.write_text("SENTINEL", encoding="utf-8")
+        fake = FakeGraphKA([Entity(name="A")], [])
+        with (
+            patch("hyperextract.cli.cli.validate_config"),
+            patch(
+                "hyperextract.cli.cli.get_template_from_ka", return_value=("t", "en")
+            ),
+            patch("hyperextract.cli.cli.Template.create", return_value=fake),
+        ):
+            result = runner.invoke(
+                app, ["export", "cypher", str(ka_dir), "-o", str(dest)]
+            )
+        assert result.exit_code != 0
+        assert "--force" in result.output or "-f" in result.output
+        assert dest.read_text(encoding="utf-8") == "SENTINEL"

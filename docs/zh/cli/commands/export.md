@@ -2,7 +2,7 @@
 
 将知识摘要导出为 [Obsidian](https://obsidian.md) 知识库——一个由 `[[双向链接]]` 关联的 Markdown 笔记文件夹。
 
-`export` 是一个命令组。目前支持的格式：`obsidian`、`graphml`、`csv`。
+`export` 是一个命令组。目前支持的格式：`obsidian`、`graphml`、`cypher`、`csv`。
 
 ---
 
@@ -165,6 +165,27 @@ he export graphml ./tesla_kb/ -o ./tesla.graphml
 
 ---
 
+## he export cypher
+
+导出 Neo4j / Memgraph 可用的 Cypher MERGE 脚本（`cypher-shell < file.cypher`）。二元边写成关系（`:REL`，或合法的 `type`/`label` ident）。三个及以上端点的边写成 `(:Hyperedge)` 节点，并用 `(n)-[:IN]->(h)` 按抽取器顺序连接——不会拆成两两团。0/1 个端点或缺失端点的边会跳过并记 warning。
+
+目标文件已存在且非空时需要 `--force` / `-f`。
+
+### 用法
+
+```bash
+he export cypher KA_PATH -o FILE.cypher [--force]
+```
+
+### 示例
+
+```bash
+he export cypher ./tesla_kb/ -o ./tesla.cypher
+he export cypher ./tesla_kb/ -o ./tesla.cypher --force
+```
+
+---
+
 ## he export csv
 
 将节点和边导出为 CSV 表，便于电子表格以及读取边列表的图谱工具使用。
@@ -220,7 +241,7 @@ Obsidian 导出是图谱 Auto-Type 上的方法；GraphML / CSV 是独立纯函�
 ```python
 ka.export_obsidian("./tesla_vault/", vault_name="Tesla KB", overwrite=True)
 
-from hyperextract.utils.exporters import export_to_graphml, export_to_csv
+from hyperextract.utils.exporters import export_to_graphml, export_to_csv, export_to_cypher
 
 export_to_graphml(
     ka.nodes,
@@ -237,6 +258,14 @@ export_to_csv(
     incident_nodes_extractor=ka.nodes_in_edge_extractor,
     folder_path="./tesla_csv/",
     overwrite=True,
+)
+
+export_to_cypher(
+    ka.nodes,
+    ka.edges,
+    node_id_extractor=ka.node_key_extractor,
+    incident_nodes_extractor=ka.nodes_in_edge_extractor,
+    file_path="./tesla.cypher",
 )
 ```
 
