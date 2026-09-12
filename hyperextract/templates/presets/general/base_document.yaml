@@ -1,0 +1,39 @@
+language: [zh, en]
+
+name: base_document
+type: document
+tags: [general, document]
+
+description:
+  zh: '通用文档语料模板 - 将文本切成可检索的原文块。AutoDocument 不跑 LLM 抽取，output.fields 仅为满足 TemplateCfg，不参与抽取。'
+  en: 'General-purpose document corpus template - splits text into retrievable raw chunks. AutoDocument does not run LLM extraction; output.fields exist only to satisfy TemplateCfg and are not extracted.'
+
+output:
+  description:
+    zh: '占位输出。AutoDocument 存储原文块，不按这些字段抽取。'
+    en: 'Placeholder output. AutoDocument stores raw chunks and does not extract these fields.'
+  fields:
+  - name: content
+    type: str
+    description:
+      zh: '占位字段，满足 TemplateCfg；不参与抽取。'
+      en: 'Placeholder field required by TemplateCfg; not used for extraction.'
+
+guideline:
+  target:
+    zh: 'AutoDocument 不跑 LLM 抽取。将文本按块存储以便检索。'
+    en: 'AutoDocument does not run LLM extraction. Store text as chunks for retrieval.'
+  rules:
+    zh:
+    - '只切分并存储原文，不要发明图谱 schema。'
+    - 'output.fields 是占位，不参与抽取。'
+    en:
+    - 'Chunk and store the source text only; do not invent a graph schema.'
+    - 'output.fields are placeholders and are not extracted.'
+
+display:
+  label: '{content}'
+
+options:
+  chunk_size: 2048
+  chunk_overlap: 256

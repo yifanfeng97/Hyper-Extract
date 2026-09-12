@@ -48,6 +48,7 @@ examples/
 │   ├── tesla.md                # Tesla biography data
 │   ├── tesla_question.md       # Query questions
 │   ├── autotypes/             # AutoType demos
+│   │   ├── document_demo.py    # Raw document chunks
 │   │   ├── graph_demo.py       # Knowledge graph
 │   │   ├── list_demo.py        # List extraction
 │   │   ├── set_demo.py         # Set extraction
@@ -79,6 +80,7 @@ examples/
     ├── sushi.md               # Su Shi biography data
     ├── sushi_question.md      # Query questions
     ├── autotypes/             # AutoType demos
+    │   ├── document_demo.py
     │   ├── graph_demo.py
     │   ├── list_demo.py
     │   ├── set_demo.py
@@ -113,8 +115,9 @@ Each demo showcases a specific extraction type:
 
 | Demo | Description |
 |------|-------------|
+| `document_demo.py` | Store retrievable raw chunks (no LLM extraction) |
 | `graph_demo.py` | Extract entities & relationships (knowledge graph) |
-| `list_demo.py` | Extract list of items |
+| `list_demo.py` | Extract list of items
 | `set_demo.py` | Extract deduplicated set |
 | `model_demo.py` | Extract structured summary |
 | `temporal_graph_demo.py` | Extract temporal relationships |

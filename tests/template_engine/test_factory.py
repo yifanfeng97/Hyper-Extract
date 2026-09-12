@@ -207,3 +207,17 @@ class TestTemplateFactoryDocumentType:
         from hyperextract.types import AutoDocument as Canonical
 
         assert Exported is Canonical
+
+    def test_create_gallery_base_document_preset(self, llm_client, embedder):
+        from hyperextract import AutoDocument
+        from hyperextract.utils.template_engine import Gallery, Template
+
+        assert Gallery.get("general/base_document") is not None
+        result = Template.create(
+            "general/base_document",
+            "en",
+            llm_client,
+            embedder,
+        )
+        assert isinstance(result, AutoDocument)
+        assert result.metadata.get("type") == "document"

@@ -49,6 +49,7 @@ examples/
 │   ├── tesla.md                # 特斯拉传记数据
 │   ├── tesla_question.md       # 查询问题
 │   ├── autotypes/             # 自动类型演示
+│   │   ├── document_demo.py    # 原文分块
 │   │   ├── graph_demo.py       # 知识图谱
 │   │   ├── list_demo.py        # 列表提取
 │   │   ├── set_demo.py         # 集合提取
@@ -80,6 +81,7 @@ examples/
     ├── sushi.md               # 苏轼传记数据
     ├── sushi_question.md      # 查询问题
     ├── autotypes/             # 自动类型演示
+    │   ├── document_demo.py
     │   ├── graph_demo.py
     │   ├── list_demo.py
     │   ├── set_demo.py
@@ -114,6 +116,7 @@ examples/
 
 | 演示 | 描述 |
 |------|------|
+| `document_demo.py` | 存储可检索原文块（不跑 LLM 抽取） |
 | `graph_demo.py` | 提取实体和关系（知识图谱） |
 | `list_demo.py` | 提取项目列表 |
 | `set_demo.py` | 提取去重集合 |
