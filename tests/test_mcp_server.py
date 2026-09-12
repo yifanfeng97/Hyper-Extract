@@ -59,6 +59,19 @@ def test_list_templates_returns_json():
     assert {"name", "type", "description"} <= set(out[0].keys())
 
 
+def test_list_templates_includes_methods_by_default():
+    out = json.loads(mcp_server.list_templates())
+    names = {item["name"] for item in out}
+    assert any(name.startswith("method/") for name in names)
+    assert "method/graph_rag" in names or "method/chunk_rag" in names
+
+
+def test_list_templates_can_hide_methods():
+    out = json.loads(mcp_server.list_templates(include_methods=False))
+    names = {item["name"] for item in out}
+    assert all(not name.startswith("method/") for name in names)
+
+
 # ---------------------------------------------------------------------------
 # info (no client needed — reads json directly)
 # ---------------------------------------------------------------------------

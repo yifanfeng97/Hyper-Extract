@@ -82,14 +82,18 @@ def _dump(obj: Any) -> str:
 # ---------------------------------------------------------------------------
 
 
-def list_templates() -> str:
+def list_templates(include_methods: bool = True) -> str:
     """List the available knowledge-extraction templates.
+
+    Args:
+        include_methods: When true (default), include ``method/<name>``
+            entries the CLI lists and ``he parse -t`` accepts.
 
     Returns a JSON array of {name, type, description}.
     """
     from hyperextract.utils.template_engine import Template
 
-    templates = Template.list(include_methods=False)
+    templates = Template.list(include_methods=include_methods)
     out = []
     for name, cfg in sorted(templates.items()):
         desc = getattr(cfg, "description", "") or ""
