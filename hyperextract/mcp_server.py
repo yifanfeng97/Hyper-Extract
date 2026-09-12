@@ -152,8 +152,14 @@ def search(ka_path: str, query: str, top_k: int = 5) -> str:
         query: Natural-language search query.
         top_k: Maximum number of results (for graphs: nodes and edges each).
 
-    Returns matching nodes/edges as JSON. The KA must have an index
-    (build it with `he build-index`).
+    Returns JSON shaped by the AutoType search return:
+
+    - 2-tuple → ``{"nodes": [...], "edges": [...]}``
+    - 3-tuple → same plus ``community_context`` (``null`` is written)
+    - dict → passed through (values via ``_model_to_dict``)
+    - list → ``{"results": [...]}``
+
+    The KA must have an index (build it with `he build-index`).
     """
     ka = _load_ka(ka_path)
     try:
@@ -161,15 +167,24 @@ def search(ka_path: str, query: str, top_k: int = 5) -> str:
     except ValueError as e:
         return f"Cannot search: {e}. Build the index first with `he build-index {ka_path}`."
 
+    return _dump(_search_payload(results))
+
+
+def _search_payload(results: Any) -> Any:
+    """Normalize AutoType search returns into JSON-serializable shapes."""
+    if isinstance(results, dict):
+        return {key: _model_to_dict(value) for key, value in results.items()}
     if isinstance(results, tuple):
-        nodes, edges = results
-        return _dump(
-            {
-                "nodes": [_model_to_dict(n) for n in nodes],
-                "edges": [_model_to_dict(e) for e in edges],
-            }
-        )
-    return _dump({"results": [_model_to_dict(r) for r in results]})
+        nodes = results[0] if len(results) >= 1 else []
+        edges = results[1] if len(results) >= 2 else []
+        payload = {
+            "nodes": [_model_to_dict(n) for n in nodes],
+            "edges": [_model_to_dict(e) for e in edges],
+        }
+        if len(results) >= 3:
+            payload["community_context"] = _model_to_dict(results[2])
+        return payload
+    return {"results": [_model_to_dict(r) for r in results]}
 
 
 def ask(ka_path: str, question: str, top_k: int = 5) -> str:
@@ -306,6 +321,10 @@ def export_csv(ka_path: str, output: str, overwrite: bool = False) -> str:
 def _model_to_dict(item: Any) -> Any:
     if hasattr(item, "model_dump"):
         return item.model_dump()
+    if isinstance(item, list):
+        return [_model_to_dict(x) for x in item]
+    if isinstance(item, dict):
+        return {key: _model_to_dict(value) for key, value in item.items()}
     return item
 
 

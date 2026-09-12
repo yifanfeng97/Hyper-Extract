@@ -95,6 +95,59 @@ def test_search_returns_nodes_and_edges(monkeypatch):
     assert isinstance(out["nodes"], list)
 
 
+def test_search_graph_rag_triple_includes_community_context(monkeypatch):
+    class _TripleKA:
+        def search(self, query, top_k=5):
+            return (
+                [Entity(name="Alice")],
+                [Relation(source="Alice", target="Bob", relation_type="knows")],
+                {"summary": "cluster"},
+            )
+
+    monkeypatch.setattr(mcp_server, "_load_ka", lambda p: _TripleKA())
+    out = json.loads(mcp_server.search("x", "query"))
+    assert "nodes" in out and "edges" in out
+    assert out["community_context"] == {"summary": "cluster"}
+    assert out["nodes"][0]["name"] == "Alice"
+
+
+def test_search_graph_rag_triple_writes_null_community(monkeypatch):
+    class _TripleKA:
+        def search(self, query, top_k=5):
+            return ([], [], None)
+
+    monkeypatch.setattr(mcp_server, "_load_ka", lambda p: _TripleKA())
+    out = json.loads(mcp_server.search("x", "query"))
+    assert out["nodes"] == []
+    assert out["edges"] == []
+    assert out["community_context"] is None
+
+
+def test_search_list_wraps_results(monkeypatch):
+    class _ListKA:
+        def search(self, query, top_k=5):
+            return [Entity(name="Alice"), Entity(name="Bob")]
+
+    monkeypatch.setattr(mcp_server, "_load_ka", lambda p: _ListKA())
+    out = json.loads(mcp_server.search("x", "query"))
+    assert "results" in out
+    assert [item["name"] for item in out["results"]] == ["Alice", "Bob"]
+
+
+def test_search_dict_passes_through(monkeypatch):
+    class _DictKA:
+        def search(self, query, top_k=5):
+            return {
+                "themes": [Entity(name="power")],
+                "entities": [Entity(name="Tesla")],
+            }
+
+    monkeypatch.setattr(mcp_server, "_load_ka", lambda p: _DictKA())
+    out = json.loads(mcp_server.search("x", "query"))
+    assert out["themes"][0]["name"] == "power"
+    assert out["entities"][0]["name"] == "Tesla"
+
+
 def test_search_without_index_is_handled(monkeypatch):
     g = AutoGraph(
         node_schema=Entity,
