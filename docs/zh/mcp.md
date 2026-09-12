@@ -42,7 +42,7 @@ python -m hyperextract.mcp_server
 | 工具 | 说明 | 需要索引 | 需要 LLM |
 |------|-------------|:-----------:|:---------:|
 | `list_templates` | 列出可用的提取模板 | — | — |
-| `info` | KA 统计（模板、数量、索引状态） | — | — |
+| `info` | KA 统计（模板、数量、chunks、时间戳；`include_sources` 可返回来源账本） | — | — |
 | `search` | KA 语义检索 | ✓ | 嵌入器 |
 | `ask` | KA 上的 RAG 问答 | ✓ | ✓ |
 | `export_obsidian` | 将 KA 导出为 Obsidian 知识库 | — | 嵌入器 |

@@ -6,7 +6,8 @@ deletes a KA.
 
 Tools:
     - list_templates  : list available extraction templates
-    - info            : stats for a knowledge abstract (no LLM needed)
+    - info            : stats for a knowledge abstract (chunks, timestamps,
+                        optional sources; no LLM needed)
     - search          : semantic retrieval over a KA (needs an index)
     - ask             : RAG question-answering over a KA (needs an index)
     - export_obsidian : export a KA to an Obsidian vault
@@ -101,13 +102,16 @@ def list_templates() -> str:
     return _dump(out)
 
 
-def info(ka_path: str) -> str:
+def info(ka_path: str, include_sources: bool = False) -> str:
     """Show information and statistics for a knowledge abstract.
 
     Args:
         ka_path: Path to the knowledge abstract directory.
+        include_sources: When true, include source-ledger rows (same files
+            ``he info --sources`` reads). Default false.
 
-    Returns JSON with template, language, node/edge counts, and index status.
+    Returns JSON with template, language, node/edge counts, optional chunks,
+    created/updated timestamps, index status, and optional sources.
     Does not require LLM/embedder configuration.
     """
     path = Path(ka_path)
@@ -116,9 +120,11 @@ def info(ka_path: str) -> str:
         return f"Not a knowledge abstract (no data.json): {ka_path}"
 
     data = json.loads(data_file.read_text(encoding="utf-8"))
+    chunks = 0
     if isinstance(data, dict):
         nodes = len(data.get("nodes", data.get("entities", [])))
         edges = len(data.get("edges", data.get("relations", [])))
+        chunks = len(data.get("chunks", []))
     elif isinstance(data, list):
         nodes, edges = len(data), 0
     else:
@@ -132,16 +138,61 @@ def info(ka_path: str) -> str:
     index_dir = path / "index"
     index_built = index_dir.exists() and any(index_dir.iterdir())
 
-    return _dump(
-        {
-            "path": str(path),
-            "template": meta.get("template"),
-            "lang": meta.get("lang"),
-            "nodes": nodes,
-            "edges": edges,
-            "index_built": index_built,
-        }
+    payload: dict[str, Any] = {
+        "path": str(path),
+        "template": meta.get("template"),
+        "lang": meta.get("lang"),
+        "nodes": nodes,
+        "edges": edges,
+        "index_built": index_built,
+    }
+    if chunks:
+        payload["chunks"] = chunks
+    if meta.get("created_at"):
+        payload["created"] = meta["created_at"]
+    if meta.get("updated_at"):
+        payload["updated"] = meta["updated_at"]
+    if include_sources:
+        payload["sources"] = _source_ledger_rows(path)
+    return _dump(payload)
+
+
+def _source_ledger_rows(path: Path) -> list[dict[str, Any]]:
+    """Collect source-ledger rows using the same files as ``he info --sources``."""
+    ledger_files = (
+        path / "sources_nodes.json",
+        path / "sources_edges.json",
+        path / "sources_chunks.json",
+        path / "sources_items.json",
     )
+    combined: dict[str, dict[str, Any]] = {}
+    for ledger_path in ledger_files:
+        if not ledger_path.exists():
+            continue
+        try:
+            entries = json.loads(ledger_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            continue
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            sid = entry.get("source_id")
+            if sid is None:
+                continue
+            record = combined.setdefault(
+                str(sid),
+                {
+                    "source_id": str(sid),
+                    "raw_items": 0,
+                    "content_hash": entry.get("content_hash"),
+                },
+            )
+            record["raw_items"] += len(entry.get("raw_items", []))
+            if record.get("content_hash") is None:
+                record["content_hash"] = entry.get("content_hash")
+    return [combined[key] for key in sorted(combined)]
 
 
 def search(ka_path: str, query: str, top_k: int = 5) -> str:

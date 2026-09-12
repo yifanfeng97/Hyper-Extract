@@ -74,6 +74,52 @@ def test_info_reports_counts(tmp_path):
     assert out["edges"] == 1
     assert out["index_built"] is True
     assert out["template"] == "general/base_graph"
+    assert "created" in out
+    assert "updated" in out
+    assert "sources" not in out
+
+
+def test_info_includes_chunks_and_optional_sources(tmp_path):
+    ka = tmp_path / "doc_ka"
+    ka.mkdir()
+    (ka / "data.json").write_text(
+        json.dumps({"chunks": [{"content": "a"}, {"content": "b"}]}),
+        encoding="utf-8",
+    )
+    (ka / "metadata.json").write_text(
+        json.dumps(
+            {
+                "template": "general/base_document",
+                "lang": "en",
+                "created_at": "2026-09-12T00:00:00",
+                "updated_at": "2026-09-12T01:00:00",
+            }
+        ),
+        encoding="utf-8",
+    )
+    (ka / "sources_chunks.json").write_text(
+        json.dumps(
+            [
+                {
+                    "source_id": "doc-1",
+                    "content_hash": "abc",
+                    "raw_items": [{"content": "a"}, {"content": "b"}],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    out = json.loads(mcp_server.info(str(ka)))
+    assert out["chunks"] == 2
+    assert out["created"] == "2026-09-12T00:00:00"
+    assert out["updated"] == "2026-09-12T01:00:00"
+    assert "sources" not in out
+
+    with_sources = json.loads(mcp_server.info(str(ka), include_sources=True))
+    assert with_sources["sources"] == [
+        {"source_id": "doc-1", "raw_items": 2, "content_hash": "abc"}
+    ]
 
 
 def test_info_rejects_non_ka(tmp_path):

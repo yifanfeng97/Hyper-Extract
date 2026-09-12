@@ -42,7 +42,7 @@ Point your MCP client at the `he-mcp` command. For a Claude Desktop–style conf
 | Tool | Description | Needs index | Needs LLM |
 |------|-------------|:-----------:|:---------:|
 | `list_templates` | List available extraction templates | — | — |
-| `info` | Stats for a KA (template, counts, index status) | — | — |
+| `info` | Stats for a KA (template, counts, chunks, timestamps; `include_sources` for ledger rows) | — | — |
 | `search` | Semantic retrieval over a KA | ✓ | embedder |
 | `ask` | RAG question-answering over a KA | ✓ | ✓ |
 | `export_obsidian` | Export a KA to an Obsidian vault | — | embedder |
