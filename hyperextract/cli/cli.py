@@ -816,6 +816,81 @@ def info(
             )
 
 
+def _search_item_payload(result):
+    """Serialize one search hit for JSON printing."""
+    if hasattr(result, "model_dump"):
+        return result.model_dump()
+    if hasattr(result, "dict"):
+        return result.dict()
+    return result
+
+
+def _print_search_item(result) -> None:
+    import json
+
+    payload = _search_item_payload(result)
+    if isinstance(payload, (dict, list)):
+        console.print_json(json.dumps(payload, indent=2, ensure_ascii=False))
+    else:
+        console.print(str(result))
+    console.print()
+
+
+def _print_search_section(title: str, items) -> None:
+    console.print(f"[bold cyan]{title}[/bold cyan]")
+    if not items:
+        console.print("[dim](none)[/dim]")
+        console.print()
+        return
+    if isinstance(items, dict):
+        import json
+
+        console.print_json(json.dumps(items, indent=2, ensure_ascii=False))
+        console.print()
+        return
+    for item in items:
+        _print_search_item(item)
+
+
+def _print_search_results(results) -> None:
+    """Print `he search` hits by AutoType return shape (list / tuple / dict)."""
+    if not results:
+        console.print("[yellow]No results found.[/yellow]")
+        return
+
+    if isinstance(results, dict):
+        count = 0
+        for value in results.values():
+            count += len(value) if isinstance(value, list) else 1
+        console.print(f"[bold green]Found {count} result(s):[/bold green]")
+        console.print()
+        preferred = [key for key in ("themes", "entities") if key in results]
+        other = [key for key in results if key not in preferred]
+        for key in preferred + other:
+            title = key[:1].upper() + key[1:] if key else key
+            _print_search_section(title, results[key])
+        return
+
+    if isinstance(results, tuple):
+        nodes = results[0] if len(results) >= 1 else []
+        edges = results[1] if len(results) >= 2 else []
+        community = results[2] if len(results) >= 3 else None
+        count = len(nodes) + len(edges)
+        console.print(f"[bold green]Found {count} result(s):[/bold green]")
+        console.print()
+        _print_search_section("Nodes", nodes)
+        _print_search_section("Edges", edges)
+        if len(results) >= 3 and isinstance(community, dict) and community:
+            _print_search_section("Community", community)
+        return
+
+    console.print(f"[bold green]Found {len(results)} result(s):[/bold green]")
+    console.print()
+    for i, result in enumerate(results, 1):
+        console.print(f"[bold cyan]Result {i}:[/bold cyan]")
+        _print_search_item(result)
+
+
 @app.command(name="search")
 def search(
     ka_path: str = typer.Argument(..., help="Knowledge Abstract directory"),
@@ -830,7 +905,6 @@ def search(
 ):
     """Semantic search in Knowledge Abstract."""
     logger.info("command=search ka_path=%s query=%s top_k=%d", ka_path, query, top_k)
-    import json
 
     validate_config()
 
@@ -883,25 +957,7 @@ def search(
             raise typer.Exit(1)
 
     console.print()
-    if not results:
-        console.print("[yellow]No results found.[/yellow]")
-    else:
-        console.print(f"[bold green]Found {len(results)} result(s):[/bold green]")
-        console.print()
-
-        for i, result in enumerate(results, 1):
-            console.print(f"[bold cyan]Result {i}:[/bold cyan]")
-            if hasattr(result, "model_dump"):
-                console.print_json(
-                    json.dumps(result.model_dump(), indent=2, ensure_ascii=False)
-                )
-            elif hasattr(result, "dict"):
-                console.print_json(
-                    json.dumps(result.dict(), indent=2, ensure_ascii=False)
-                )
-            else:
-                console.print(str(result))
-            console.print()
+    _print_search_results(results)
 
     console.print("[dim]Continue:[/dim]")
     console.print(
