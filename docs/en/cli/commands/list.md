@@ -49,6 +49,7 @@ Templates are organized by output type:
 
 | Type | Templates |
 |------|-----------|
+| `document` | Chunked raw text without LLM extraction |
 | `model` | Structured data extraction |
 | `list` | Ordered collections |
 | `set` | Deduplicated collections |

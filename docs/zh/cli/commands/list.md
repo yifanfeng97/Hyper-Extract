@@ -49,6 +49,7 @@ medicine/drug_interaction     graph             Drug interaction network
 
 | 类型 | 模板 |
 |------|-----------|
+| `document` | 分块原文，不跑 LLM 抽取 |
 | `model` | 结构化数据提取 |
 | `list` | 有序集合 |
 | `set` | 去重集合 |

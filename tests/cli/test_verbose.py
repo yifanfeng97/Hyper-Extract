@@ -114,6 +114,15 @@ class TestCLINoVerboseFlag:
         result = runner.invoke(app, ["list", "template", "--help"])
         assert result.exit_code == 0
 
+    def test_list_template_legend_includes_document(self):
+        """Type explanations mention AutoDocument's YAML type."""
+        result = runner.invoke(app, ["list", "template"])
+        assert result.exit_code == 0, result.output
+        assert "document" in result.output
+        assert "temporal_graph" in result.output
+        assert "spatial_graph" in result.output
+        assert "spatio_temporal_graph" in result.output
+
     def test_config_help_works(self):
         """he config --help exits cleanly."""
         result = runner.invoke(app, ["config", "--help"])

@@ -8,6 +8,7 @@ handling the complexities of LLM interaction, text chunking, and result merging 
 
 | Class | Structure | Core Use Case | Key Feature |
 | :--- | :--- | :--- | :--- |
+| **`AutoDocument`** | Text Chunks | Raw corpus retrieval | No LLM extraction; stores and searches chunks |
 | **`AutoModel`** | Single Object | Document Summaries, Metadata | Merges all chunks into ONE consistent object |
 | **`AutoList`** | List[Item] | Event Logs, Todo Lists | Appends items from all chunks commonly |
 | **`AutoSet`** | Set[Item] | Entity Registries, Glossaries | Deduplicates items by key & merges details |
@@ -20,6 +21,9 @@ handling the complexities of LLM interaction, text chunking, and result merging 
 # 📚 Detailed Scope Description
 
 ## 1. Scalar & Document Types (标量与文档型)
+*   **`AutoDocument`**: Designed for **"One Document -> Retrievable Chunks"**.
+    *   *Scope*: Keep the source text as chunks when you do not want LLM extraction (baseline retrieval, or a fallback when extraction quality/cost is a concern).
+    *   *Logic*: `feed_text` splits text, stores chunks, and `search` returns the raw chunks. YAML `type: document`.
 *   **`AutoModel`**: Designed for **"One Document -> One Object"**.
     *   *Scope*: When you need to summarize a whole file into a single structure (e.g., "Research Report" with fields for summary, author, conclusion).
     *   *Logic*: It treats every text chunk as a partial view of the *same* object and uses LLM to merge them.
