@@ -44,7 +44,7 @@ Checks follow `hyperextract-skills/yaml-validator/` and `templates/DESIGN_GUIDE.
 | `HE-T005` | Display `{field}` placeholders exist on the corresponding schema | error |
 | `HE-T006` | Temporal types define `time_field`; spatial types define `location_field` | error |
 | `HE-T007` | Declared languages are present on bilingual dict fields | warning |
-| `HE-T008` | Entity or relation field count exceeds the DESIGN_GUIDE limit of 5 | warning |
+| `HE-T008` | Field count exceeds the DESIGN_GUIDE limit of 5 (graph entity/relation, or `model`/`list`/`set` `output.fields`) | warning |
 | `HE-T009` | `domain/name` collides with a Gallery preset | warning |
 
 Exit code **1** if any **error** is reported; **0** if the template is clean or has warnings only.

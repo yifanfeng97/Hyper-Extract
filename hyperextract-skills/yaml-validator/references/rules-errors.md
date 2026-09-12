@@ -26,7 +26,7 @@ output:
 
 ```
 ERROR: type value 'graphh' is not valid
-Valid values: model, list, set, graph, hypergraph, temporal_graph, spatial_graph, spatio_temporal_graph
+Valid values: model, list, set, document, graph, hypergraph, temporal_graph, spatial_graph, spatio_temporal_graph
 Fix: Correct to 'graph'
 ```
 

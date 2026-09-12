@@ -46,10 +46,12 @@ python -m hyperextract.mcp_server
 | `search` | KA 语义检索 | ✓ | 嵌入器 |
 | `ask` | KA 上的 RAG 问答 | ✓ | ✓ |
 | `export_obsidian` | 将 KA 导出为 Obsidian 知识库 | — | 嵌入器 |
+| `export_graphml` | 将 KA 导出为 GraphML（同 `he export graphml`） | — | 嵌入器 |
+| `export_csv` | 将 KA 导出为 CSV 表（同 `he export csv`） | — | 嵌入器 |
 
 所有工具都接受一个 `ka_path`（由 `he parse` 创建的目录）。`search`/`ask` 需要索引——用 [`he build-index`](cli/commands/build-index.md) 构建。
 
-> `export_obsidian` 依赖 Obsidian 导出功能（见 [`he export obsidian`](cli/commands/export.md)）。若不可用，该工具会返回说明信息而不会报错。
+> `export_obsidian` 依赖 Obsidian 导出功能（见 [`he export obsidian`](cli/commands/export.md)）。若不可用，该工具会返回说明信息而不会报错。`export_graphml` / `export_csv` 使用与 CLI 相同的导出器（见 [`he export`](cli/commands/export.md)）。
 
 ---
 

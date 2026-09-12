@@ -18,6 +18,12 @@ python providers/bailian_demo.py
 # DeepSeek
 python providers/deepseek_demo.py
 
+# Anthropic
+python providers/anthropic_demo.py
+
+# OrcaRouter
+python providers/orcarouter_demo.py
+
 # Local vLLM
 python providers/vllm_demo.py
 ```
@@ -43,6 +49,8 @@ examples/
 │   ├── openai_demo.py          # OpenAI setup
 │   ├── bailian_demo.py         # Bailian (Alibaba Cloud) setup
 │   ├── deepseek_demo.py        # DeepSeek setup
+│   ├── anthropic_demo.py       # Anthropic setup
+│   ├── orcarouter_demo.py      # OrcaRouter setup
 │   └── vllm_demo.py            # Local vLLM setup
 ├── en/                          # English demos
 │   ├── tesla.md                # Tesla biography data

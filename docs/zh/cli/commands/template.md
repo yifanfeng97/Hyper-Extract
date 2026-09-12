@@ -44,7 +44,7 @@ he template validate PATH [--json] [--all]
 | `HE-T005` | display 中的 `{field}` 占位符在对应 schema 中存在 | error |
 | `HE-T006` | 时序类型定义 `time_field`；空间类型定义 `location_field` | error |
 | `HE-T007` | 已声明的语言在双语字典字段中齐全 | warning |
-| `HE-T008` | 实体或关系字段数超过 DESIGN_GUIDE 上限 5 | warning |
+| `HE-T008` | 字段数超过 DESIGN_GUIDE 上限 5（图的实体/关系，或 `model`/`list`/`set` 的 `output.fields`） | warning |
 | `HE-T009` | `domain/name` 与 Gallery 中已有 preset 冲突 | warning |
 
 存在任何 **error** 时退出码为 **1**；全部通过或仅有 warning 时为 **0**。

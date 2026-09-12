@@ -1,6 +1,6 @@
 # Provider 系统
 
-Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**阿里云百炼**、**DeepSeek**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
+Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
 
 ---
 
@@ -13,6 +13,7 @@ Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**阿里�
 | **OpenAI** | gpt-4o / gpt-4o-mini / gpt-5 | ✅ | ✅ | 官方原生支持，推荐 |
 | **Anthropic** | claude-opus-4-8 / claude-sonnet-4-6 / claude-haiku-4-5 | ✅（工具调用） | ✅ | 仅 LLM——无嵌入接口（请搭配 OpenAI 兼容嵌入器）。需 `hyperextract[anthropic]` |
 | **DeepSeek** | deepseek-v4-flash / deepseek-v4-pro | ✅ | ✅ | OpenAI 兼容。V4 模型默认开启"thinking"模式，Hyper-Extract 会自动关闭以保证结构化抽取可用。仅 LLM——无嵌入接口。密钥：`DEEPSEEK_API_KEY` |
+| **OrcaRouter** | `orcarouter/auto`、`openai/gpt-4o-mini`、`anthropic/claude-haiku-4-5`、`deepseek/...`、`gemini/...` | ✅ | ✅ | OpenAI 兼容网关，用同一端点和密钥路由 OpenAI、Anthropic、Google、DeepSeek、Qwen、MiniMax、xAI 等 150+ 模型。密钥：`ORCAROUTER_API_KEY` |
 | **阿里云百炼** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | 直接使用，无需修改 |
 | **阿里云百炼** | qwen-max / deepseek-v3 | ❌ | ❌ | 仅支持 `json_object`，不兼容 function calling 结构化输出 |
 
@@ -59,6 +60,13 @@ llm, emb = create_client(
     llm="deepseek",
     embedder="openai:text-embedding-3-small",  # 或 vllm:bge-m3@localhost:8001/v1
 )
+
+# OrcaRouter —— OpenAI 兼容网关，用一把密钥路由 150+ 模型（OpenAI、
+# Anthropic、Google、DeepSeek、Qwen、MiniMax、xAI）。默认模型
+# "orcarouter/auto" 会选合适的上游；可用 "openai:gpt-4o-mini" 或
+# "anthropic:claude-haiku-4-5" 等命名空间 id 覆盖。
+# 密钥：ORCAROUTER_API_KEY（回退：OPENAI_API_KEY）。
+llm, emb = create_client("orcarouter")
 
 # 本地 vLLM
 llm, emb = create_client(
