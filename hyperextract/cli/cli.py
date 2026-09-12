@@ -1089,10 +1089,60 @@ def talk(
         console.print(f"[dim]  he show {ka_path}              # Visualize[/dim]")
 
 
+def _feed_one_document(
+    ka,
+    output_path: Path,
+    input: str,
+    source: str | None,
+    refeed: bool,
+    store_doc: bool,
+) -> bool:
+    """Ingest one file or stdin into ``ka``. Returns False if skipped unchanged."""
+    require_supported_text_input(input)
+    text = read_input(input)
+    console.print(
+        f"[dim]Input {Path(input).name if input != '-' else 'stdin'}: "
+        f"{len(text)} characters"
+        f"{f' (source: {source})' if source else ''}[/dim]"
+    )
+
+    text_hash_to_record = None
+    if source:
+        text_hash_to_record = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        if not refeed:
+            recorded = ka.source_content_hash(source)
+            if recorded == text_hash_to_record:
+                logger.info("stage=source_unchanged source=%s", source)
+                console.print(
+                    f"[yellow]Source '{source}' is unchanged (content hash "
+                    "matches) — nothing to do.[/yellow] "
+                    "Use --refeed to re-ingest anyway."
+                )
+                return False
+
+    if store_doc and source:
+        from hyperextract.utils.document_store import SourceDocumentStore
+
+        original_name = "stdin.txt" if input == "-" else Path(input).name
+        store = SourceDocumentStore(output_path)
+        if input == "-":
+            stored_doc = store.store_text(source, text, original_name)
+        else:
+            stored_doc = store.store_file(source, input)
+        console.print(f"[dim]Document archived: {stored_doc}[/dim]")
+
+    logger.debug("stage=feed_text_invoked")
+    ka.feed_text(text, source_id=source, content_hash=text_hash_to_record)
+    logger.info("stage=knowledge_appended chars=%d source=%s", len(text), source)
+    return True
+
+
 @app.command(name="feed")
 def feed(
     ka_path: str = typer.Argument(..., help="Knowledge Abstract directory"),
-    input: str = typer.Argument(..., help="Input file path or '-' for stdin"),
+    input: str = typer.Argument(
+        ..., help="Input file path, directory, or '-' for stdin"
+    ),
     template: str | None = typer.Option(None, "--template", "-t", help="Template"),
     lang: str | None = typer.Option(None, "--lang", "-l", help="Language"),
     source: str | None = typer.Option(
@@ -1151,50 +1201,49 @@ def feed(
 
         ka.load(output_path)
 
-        progress.update(task, description="Reading input...")
-        require_supported_text_input(input)
-        text = read_input(input)
-        console.print(f"[dim]Input text: {len(text)} characters[/dim]")
+        input_path = Path(input) if input != "-" else None
+        ingested = 0
+        if input_path is not None and input_path.is_dir():
+            progress.update(task, description="Processing directory...")
+            text_files = collect_directory_text_inputs(input_path)
+            file_sources = [source or file_path.stem for file_path in text_files]
+            progress.update(task, description="Appending knowledge...")
+            for file_path, file_source in zip(text_files, file_sources):
+                if _feed_one_document(
+                    ka,
+                    output_path,
+                    str(file_path),
+                    file_source,
+                    refeed,
+                    store_doc,
+                ):
+                    ingested += 1
+            logger.info(
+                "stage=directory_feed_complete files=%d ingested=%d",
+                len(text_files),
+                ingested,
+            )
+        else:
+            progress.update(task, description="Reading input...")
+            if not _feed_one_document(
+                ka, output_path, input, source, refeed, store_doc
+            ):
+                raise typer.Exit(0)
+            ingested = 1
 
-        # Change detection: skip unchanged sources without any LLM calls.
-        text_hash_to_record = None
-        if source:
-            text_hash_to_record = hashlib.sha256(text.encode("utf-8")).hexdigest()
-            if not refeed:
-                recorded = ka.source_content_hash(source)
-                if recorded == text_hash_to_record:
-                    logger.info("stage=source_unchanged source=%s", source)
-                    console.print(
-                        f"[yellow]Source '{source}' is unchanged (content hash "
-                        "matches) — nothing to do.[/yellow] "
-                        "Use --refeed to re-ingest anyway."
-                    )
-                    raise typer.Exit(0)
-
-        # Archive the source document (provenance evidence, kept across
-        # rollbacks; purge with he remove --document ... --purge-documents).
-        stored_doc = None
-        if store_doc and source:
-            from hyperextract.utils.document_store import SourceDocumentStore
-
-            original_name = "stdin.txt" if input == "-" else Path(input).name
-            store = SourceDocumentStore(output_path)
-            if input == "-":
-                stored_doc = store.store_text(source, text, original_name)
-            else:
-                stored_doc = store.store_file(source, input)
-            console.print(f"[dim]Document archived: {stored_doc}[/dim]")
-
-        progress.update(task, description="Appending knowledge...")
-        logger.debug("stage=feed_text_invoked")
-        ka.feed_text(text, source_id=source, content_hash=text_hash_to_record)
-        logger.info("stage=knowledge_appended chars=%d", len(text))
-
-        progress.update(task, description="Saving data...")
-        ka.dump(output_path)
-        logger.info("stage=data_saved")
+        if ingested:
+            progress.update(task, description="Saving data...")
+            ka.dump(output_path)
+            logger.info("stage=data_saved")
 
     console.print()
+    if ingested == 0:
+        console.print(
+            "[yellow]No documents were ingested.[/yellow] "
+            "Supported files were unchanged or skipped."
+        )
+        return
+
     console.print(
         f"[bold green]Success![/bold green] Knowledge appended to {output_path}"
     )

@@ -15,7 +15,7 @@ he feed KA_PATH INPUT [OPTIONS]
 | 参数 | 描述 |
 |----------|-------------|
 | `KA_PATH` | 现有知识库目录的路径 |
-| `INPUT` | 输入文件或 `-` 表示标准输入 |
+| `INPUT` | 输入文件、目录，或 `-` 表示标准输入 |
 
 支持的后缀：`.txt`/`.md` 始终支持；PDF、Word、PowerPoint、Excel、HTML、CSV、JSON、XML、EPUB 等需要可选的 ingest extra——`pip install "hyperextract[ingest]"`（完整表格见 [he parse](parse.md)）。扫描版（纯图片）PDF 没有文字层——请先做 OCR。标准输入（`-`）不检查后缀。
 
@@ -63,6 +63,12 @@ he feed ./sushi_kb/ more_sushi.md
 he feed ./ka/ doc1.md
 he feed ./ka/ doc2.md
 he feed ./ka/ doc3.md
+```
+
+也可以喂入目录（与 `he parse` 一致）：每个支持的文件单独入库，来源 id 默认为文件 stem，除非指定了 `--source`。不支持的扩展名会跳过并警告；目录里没有可读文件则非 0 退出。
+
+```bash
+he feed ./ka/ ./updates/
 ```
 
 或使用循环：

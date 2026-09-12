@@ -221,6 +221,34 @@ class TestFeedInputTypes:
         assert result.exit_code == 0, result.output
         assert "Hello Hyper Extract from DOCX" in ka.feed_text.call_args[0][0]
 
+    def test_feed_directory_two_txt_sources(self, tmp_path):
+        ka_dir = _make_ka(tmp_path)
+        folder = tmp_path / "docs"
+        folder.mkdir()
+        (folder / "alpha.txt").write_text("first document", encoding="utf-8")
+        (folder / "beta.txt").write_text("second document", encoding="utf-8")
+        with _mock_feed() as ka:
+            result = runner.invoke(app, ["feed", str(ka_dir), str(folder)])
+
+        assert result.exit_code == 0, result.output
+        ids = [call.kwargs.get("source_id") for call in ka.feed_text.call_args_list]
+        texts = [call.args[0] for call in ka.feed_text.call_args_list]
+        assert ids == ["alpha", "beta"]
+        assert texts == ["first document", "second document"]
+        ka.dump.assert_called()
+
+    def test_feed_directory_unsupported_only_exits(self, tmp_path):
+        ka_dir = _make_ka(tmp_path)
+        folder = tmp_path / "docs"
+        folder.mkdir()
+        (folder / "data.bin").write_bytes(b"\x00\x01")
+        with _mock_feed() as ka:
+            result = runner.invoke(app, ["feed", str(ka_dir), str(folder)])
+
+        assert result.exit_code == 1
+        ka.feed_text.assert_not_called()
+        ka.dump.assert_not_called()
+
     def test_feed_document_without_backend_rejected_with_hint(
         self, tmp_path, monkeypatch
     ):
@@ -237,6 +265,37 @@ class TestFeedInputTypes:
         assert "hyperextract[ingest]" in result.output
         ka.feed_text.assert_not_called()
         ka.dump.assert_not_called()
+
+
+def test_feed_directory_writes_two_sources_to_ledger(tmp_path):
+    """Two txt files become two AutoDocument source-ledger entries after feed."""
+    from hyperextract.types import AutoDocument
+    from tests.mocks import MockChatModel, MockEmbeddings
+
+    ka_dir = tmp_path / "ka"
+    seed = AutoDocument(llm_client=MockChatModel(), embedder=MockEmbeddings())
+    seed.metadata["template"] = "general/graph"
+    seed.metadata["lang"] = "en"
+    seed.dump(ka_dir)
+
+    folder = tmp_path / "docs"
+    folder.mkdir()
+    (folder / "alpha.txt").write_text("first document", encoding="utf-8")
+    (folder / "beta.txt").write_text("second document", encoding="utf-8")
+
+    live = AutoDocument(llm_client=MockChatModel(), embedder=MockEmbeddings())
+    with (
+        patch("hyperextract.cli.cli.validate_config"),
+        patch("hyperextract.cli.cli.Template.create", return_value=live),
+    ):
+        result = runner.invoke(app, ["feed", str(ka_dir), str(folder)])
+
+    assert result.exit_code == 0, result.output
+    assert set(live.sources()) == {"alpha", "beta"}
+    data = json.loads((ka_dir / "data.json").read_text(encoding="utf-8"))
+    assert len(data.get("chunks", [])) == 2
+    ledger = json.loads((ka_dir / "sources_chunks.json").read_text(encoding="utf-8"))
+    assert {entry["source_id"] for entry in ledger} == {"alpha", "beta"}
 
 
 def test_backend_probe_function_exists():

@@ -15,7 +15,7 @@ he feed KA_PATH INPUT [OPTIONS]
 | Argument | Description |
 |----------|-------------|
 | `KA_PATH` | Path to existing knowledge abstract directory |
-| `INPUT` | Input file or `-` for stdin |
+| `INPUT` | Input file, directory, or `-` for stdin |
 
 Supported suffixes: `.txt`/`.md` always; PDF, Word, PowerPoint, Excel, HTML,
 CSV, JSON, XML, EPUB and more via the optional ingest extra —
@@ -67,6 +67,12 @@ he feed ./tesla_kb/ tesla_inventions.md
 he feed ./ka/ doc1.md
 he feed ./ka/ doc2.md
 he feed ./ka/ doc3.md
+```
+
+Or feed a directory (same as `he parse`): each supported file is ingested, attributed by file stem unless `--source` is set. Unsupported extensions are skipped with a warning; if the directory has no readable files, the command exits non-zero.
+
+```bash
+he feed ./ka/ ./updates/
 ```
 
 Or use a loop:
