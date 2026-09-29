@@ -137,11 +137,21 @@ def validate_identifiers_fields(
                 f"relation_id references '{{{field}}}' but "
                 f"relations.fields does not declare '{field}'"
             )
-    if isinstance(identifiers.relation_members, dict):
-        for role, field in identifiers.relation_members.items():
+    members = identifiers.relation_members
+    if isinstance(members, dict):
+        for role, field in members.items():
             if field not in relation_fields:
                 problems.append(
                     f"relation_members['{role}'] references '{{{field}}}' but "
+                    f"relations.fields does not declare '{field}'"
+                )
+    else:
+        # Hypergraph member fields: a single field name or a list of them.
+        member_fields = [members] if isinstance(members, str) else (members or [])
+        for field in member_fields:
+            if field not in relation_fields:
+                problems.append(
+                    f"relation_members references '{{{field}}}' but "
                     f"relations.fields does not declare '{field}'"
                 )
     for attr, section in (
