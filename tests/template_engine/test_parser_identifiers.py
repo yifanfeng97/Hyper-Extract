@@ -4,6 +4,9 @@ import pytest
 from pydantic import BaseModel
 
 from hyperextract.utils.template_engine.parsers import parse_identifiers
+from hyperextract.utils.template_engine.parsers.identifiers import (
+    validate_identifiers_fields,
+)
 from hyperextract.utils.template_engine.parsers.schemas import (
     GraphIdentifiersSchema,
 )
@@ -128,3 +131,49 @@ class TestHypergraphRelationMembers:
         edge = NestedHyperRelation(name="match", group_a=["Y", "X"], group_b=["B", "A"])
 
         assert extractor(edge) == (("X", "Y"), ("A", "B"))
+
+
+class TestValidateHypergraphMembers:
+    """Hypergraph relation_members (string / list) must be field-checked too."""
+
+    @staticmethod
+    def _identifiers(members):
+        return GraphIdentifiersSchema(
+            entity_id="name",
+            relation_id="{name}|{type}",
+            relation_members=members,
+        )
+
+    @staticmethod
+    def _declared(relations):
+        return {"entities": {"name"}, "relations": set(relations)}
+
+    def test_string_members_must_be_declared(self):
+        with pytest.raises(ValueError, match="attendees"):
+            validate_identifiers_fields(
+                self._identifiers("attendees"),
+                "hypergraph",
+                self._declared(["name", "type", "participants"]),
+            )
+
+    def test_list_members_must_be_declared(self):
+        with pytest.raises(ValueError, match="group_b"):
+            validate_identifiers_fields(
+                self._identifiers(["group_a", "group_b"]),
+                "hypergraph",
+                self._declared(["name", "type", "group_a"]),
+            )
+
+    def test_declared_string_members_accepted(self):
+        validate_identifiers_fields(
+            self._identifiers("participants"),
+            "hypergraph",
+            self._declared(["name", "type", "participants"]),
+        )
+
+    def test_declared_list_members_accepted(self):
+        validate_identifiers_fields(
+            self._identifiers(["group_a", "group_b"]),
+            "hypergraph",
+            self._declared(["name", "type", "group_a", "group_b"]),
+        )
