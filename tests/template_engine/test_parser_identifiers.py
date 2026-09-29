@@ -4,6 +4,9 @@ import pytest
 from pydantic import BaseModel
 
 from hyperextract.utils.template_engine.parsers import parse_identifiers
+from hyperextract.utils.template_engine.parsers.identifiers import (
+    validate_identifiers_fields,
+)
 from hyperextract.utils.template_engine.parsers.schemas import (
     GraphIdentifiersSchema,
 )
@@ -128,3 +131,55 @@ class TestHypergraphRelationMembers:
         edge = NestedHyperRelation(name="match", group_a=["Y", "X"], group_b=["B", "A"])
 
         assert extractor(edge) == (("X", "Y"), ("A", "B"))
+
+
+class TestValidateIdentifiersFields:
+    """Load-time field check: time/location live on relations (HE-T006)."""
+
+    @staticmethod
+    def _declared(entities, relations):
+        return {"entities": set(entities), "relations": set(relations)}
+
+    def test_relation_level_time_field_accepted(self):
+        """Every shipped temporal preset declares `time` under relations."""
+        identifiers = GraphIdentifiersSchema(
+            entity_id="name",
+            relation_id="{source}|{type}|{target}|{time}",
+            relation_members={"source": "source", "target": "target"},
+            time_field="time",
+        )
+
+        validate_identifiers_fields(
+            identifiers,
+            "temporal_graph",
+            self._declared(["name"], ["source", "target", "type", "time"]),
+        )
+
+    def test_relation_level_location_field_accepted(self):
+        identifiers = GraphIdentifiersSchema(
+            entity_id="name",
+            relation_id="{source}|{target}",
+            relation_members={"source": "source", "target": "target"},
+            location_field="location",
+        )
+
+        validate_identifiers_fields(
+            identifiers,
+            "spatial_graph",
+            self._declared(["name"], ["source", "target", "location"]),
+        )
+
+    def test_undeclared_time_field_still_rejected(self):
+        identifiers = GraphIdentifiersSchema(
+            entity_id="name",
+            relation_id="{source}|{target}",
+            relation_members={"source": "source", "target": "target"},
+            time_field="when",
+        )
+
+        with pytest.raises(ValueError, match="when"):
+            validate_identifiers_fields(
+                identifiers,
+                "temporal_graph",
+                self._declared(["name"], ["source", "target"]),
+            )
