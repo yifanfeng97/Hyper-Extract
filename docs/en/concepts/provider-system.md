@@ -1,6 +1,6 @@
 # Provider System
 
-Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, and **local vLLM**. All use the same `create_client()` interface — only the first line changes.
+Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Cheaper Inference**, and **local vLLM**. All use the same `create_client()` interface — only the first line changes.
 
 ---
 
@@ -15,6 +15,7 @@ Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**,
 | **Google Gemini** | gemini-3.8-flash / gemini-2.5-flash / gemini-2.5-pro | ✅ (tool calling) | ✅ | LLM only — no embedder path in this repo (pair with an OpenAI-compatible embedder). Needs `hyperextract[google]`. Keys: `GOOGLE_API_KEY` or `GEMINI_API_KEY`. Alias: `gemini` |
 | **DeepSeek** | deepseek-v4-flash / deepseek-v4-pro | ✅ | ✅ | OpenAI-compatible. V4 models default to "thinking" mode, which Hyper-Extract auto-disables (`extra_body`) so structured extraction works. LLM only — no embeddings API. Keys: `DEEPSEEK_API_KEY` |
 | **OrcaRouter** | `orcarouter/auto`, `openai/gpt-4o-mini`, `anthropic/claude-haiku-4-5`, `deepseek/...`, `gemini/...` | ✅ | ✅ | OpenAI-compatible gateway routing 150+ models from OpenAI, Anthropic, Google, DeepSeek, Qwen, MiniMax, xAI behind one endpoint and key. Keys: `ORCAROUTER_API_KEY` |
+| **Cheaper Inference** | gpt-5.4-mini | ✅ | ✅ | OpenAI-compatible gateway. One key gives access to models from several labs. LLM only — no embeddings API (pair with an OpenAI-compatible embedder). Keys: `CHEAPER_INFERENCE_API_KEY` |
 | **Alibaba Bailian** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | Works out of the box |
 | **Alibaba Bailian** | qwen-max / deepseek-v3 | ❌ | ❌ | Only `json_object`; not compatible with function-calling structured output |
 
@@ -79,6 +80,14 @@ llm, emb = create_client(
 # namespaced ids like "openai:gpt-4o-mini" or "anthropic:claude-haiku-4-5".
 # Key: ORCAROUTER_API_KEY (fallback: OPENAI_API_KEY).
 llm, emb = create_client("orcarouter")
+
+# Cheaper Inference — OpenAI-compatible gateway, one key for models from
+# several labs. No embeddings API, so pair it with an OpenAI-compatible embedder.
+# Key: CHEAPER_INFERENCE_API_KEY. Override model with "cheaperinference:gpt-5.4".
+llm, emb = create_client(
+    llm="cheaperinference",  # default model: gpt-5.4-mini
+    embedder="openai:text-embedding-3-small",
+)
 
 # Local vLLM
 llm, emb = create_client(
