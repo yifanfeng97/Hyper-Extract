@@ -63,6 +63,14 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
         "default_llm": "orcarouter/auto",
         "default_embedder": "openai/text-embedding-3-small",
     },
+    # Cheaper Inference. OpenAI-compatible LLM gateway with one key for models
+    # from several labs, using bare model ids such as "gpt-5.4-mini". It has no
+    # embeddings API — pair it with an OpenAI-compatible embedder.
+    "cheaperinference": {
+        "base_url": "https://api.cheaperinference.com/v1",
+        "default_llm": "gpt-5.4-mini",
+        "default_embedder": None,
+    },
     # Anthropic (Claude). Uses the native ChatAnthropic client, so base_url is
     # left empty (the SDK targets api.anthropic.com by default). Anthropic has
     # no embeddings API, hence default_embedder is None — pair it with an
@@ -113,6 +121,7 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "gemini": ("GOOGLE_API_KEY", "GEMINI_API_KEY"),
     "deepseek": ("DEEPSEEK_API_KEY",),
     "orcarouter": ("ORCAROUTER_API_KEY",),
+    "cheaperinference": ("CHEAPER_INFERENCE_API_KEY",),
 }
 
 

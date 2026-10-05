@@ -73,6 +73,13 @@ class TestParseClientSpec:
         )
         assert result["model"] == "openai/text-embedding-3-small"
 
+    def test_provider_cheaperinference(self):
+        """Cheaper Inference preset defaults (OpenAI-compatible gateway)."""
+        result = _parse_client_spec("cheaperinference", api_key="sk-test")
+        assert result["provider"] == "cheaperinference"
+        assert result["model"] == "gpt-5.4-mini"  # default_llm preset
+        assert result["base_url"] == "https://api.cheaperinference.com/v1"
+
     def test_dict_input(self):
         """Dict input is passed through with api_key fallback."""
         result = _parse_client_spec(
@@ -145,6 +152,19 @@ class TestCreateLLM:
         monkeypatch.setenv("ORCAROUTER_API_KEY", "sk-orca-test")
         llm = create_llm("orcarouter")
         assert llm.openai_api_key.get_secret_value() == "sk-orca-test"
+
+    def test_create_llm_cheaperinference(self):
+        """Create LLM with cheaperinference preset (OpenAI-compatible gateway)."""
+        llm = create_llm("cheaperinference", api_key="sk-test")
+        assert llm.model_name == "gpt-5.4-mini"
+        assert llm.openai_api_base == "https://api.cheaperinference.com/v1"
+
+    def test_create_llm_cheaperinference_env_key(self, monkeypatch):
+        """Key is read from CHEAPER_INFERENCE_API_KEY when api_key is omitted."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-test")
+        monkeypatch.setenv("CHEAPER_INFERENCE_API_KEY", "ci-test")
+        llm = create_llm("cheaperinference")
+        assert llm.openai_api_key.get_secret_value() == "ci-test"
 
     def test_create_llm_deepseek_reads_provider_env_key(self, monkeypatch):
         """create_llm('deepseek') uses DEEPSEEK_API_KEY when api_key is omitted."""
@@ -605,6 +625,14 @@ class TestProviderPresets:
         assert preset["base_url"] == "https://api.orcarouter.ai/v1"
         assert preset["default_llm"] == "orcarouter/auto"
         assert preset["default_embedder"] == "openai/text-embedding-3-small"
+
+    def test_cheaperinference_provider(self):
+        """Cheaper Inference has its own preset (OpenAI-compatible, no embeddings)."""
+        assert "cheaperinference" in PROVIDER_PRESETS
+        preset = PROVIDER_PRESETS["cheaperinference"]
+        assert preset["base_url"] == "https://api.cheaperinference.com/v1"
+        assert preset["default_llm"] == "gpt-5.4-mini"
+        assert preset["default_embedder"] is None
 
     def test_all_presets_have_base_url_or_none(self):
         """Every preset has either a base_url or None (for vLLM)."""
