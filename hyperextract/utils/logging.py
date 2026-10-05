@@ -88,7 +88,12 @@ def set_log_level(level: str) -> None:
         level: Log level ("DEBUG", "INFO", "WARNING", "ERROR").
     """
     level_value = getattr(logging, level.upper(), logging.WARNING)
-    logging.getLogger().setLevel(level_value)
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level_value)
+    # configure_logging() levels each handler too, so raising verbosity needs
+    # both — otherwise the handler keeps filtering at the configured level.
+    for handler in root_logger.handlers:
+        handler.setLevel(level_value)
 
 
 __all__ = ["configure_logging", "get_logger", "set_log_level"]
