@@ -312,7 +312,8 @@ def init(
         from hyperextract.utils.client import PROVIDER_PRESETS
 
         preset = PROVIDER_PRESETS.get(provider, {})
-        llm_model = preset.get("default_llm") or "gpt-4o-mini"
+        preset_llm = preset.get("default_llm")
+        llm_model = preset_llm or "gpt-4o-mini"
         emb_model = _preset_embedder_model(preset)
         preset_url = preset.get("base_url") or ""
         resolved_base = base_url or preset_url
@@ -323,6 +324,15 @@ def init(
             api_key=api_key,
             base_url=resolved_base,
         )
+        if not preset_llm:
+            # `he config init` has no --model flag, so a provider without a
+            # preset model would otherwise be left pointing at an unrelated
+            # provider's default.
+            console.print(
+                f"[yellow]Warning: Provider '{provider}' has no default LLM "
+                f"model; '{llm_model}' was written as a placeholder. Set the "
+                f"real one: he config llm -p {provider} -m YOUR_MODEL.[/yellow]"
+            )
         if emb_model:
             config.set_embedder(
                 provider=provider,
