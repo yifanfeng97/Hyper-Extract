@@ -307,3 +307,46 @@ def test_legacy_broken_google_embedder_still_fails_create_embedder():
             {"provider": "google", "model": "text-embedding-3-small"},
             api_key=_FAKE_API_KEY,
         )
+
+
+def test_quick_init_warns_when_provider_has_no_default_llm(tmp_path, monkeypatch):
+    """`he config init` has no --model flag, so a preset-less provider (vllm)
+    must say the written model is a placeholder."""
+    from typer.testing import CliRunner
+
+    from hyperextract.cli.cli import app
+
+    cfg_path = _isolate_default_config(tmp_path, monkeypatch)
+    result = CliRunner().invoke(
+        app,
+        [
+            "config",
+            "init",
+            "-p",
+            "vllm",
+            "-k",
+            "dummy",
+            "-u",
+            "http://localhost:8000/v1",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "no default LLM" in result.output
+    assert "he config llm -p vllm -m" in result.output
+    # The placeholder is still written (LLMConfig.model has a repo-wide default).
+    assert _read_init_toml(cfg_path)["llm"]["provider"] == "vllm"
+
+
+def test_quick_init_does_not_warn_when_preset_has_default_llm(tmp_path, monkeypatch):
+    from typer.testing import CliRunner
+
+    from hyperextract.cli.cli import app
+
+    _isolate_default_config(tmp_path, monkeypatch)
+    result = CliRunner().invoke(
+        app, ["config", "init", "-p", "deepseek", "-k", _FAKE_API_KEY]
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "no default LLM" not in result.output
