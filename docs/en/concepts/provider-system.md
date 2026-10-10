@@ -1,6 +1,6 @@
 # Provider System
 
-Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, and **local vLLM**. All use the same `create_client()` interface — only the first line changes.
+Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, and **local vLLM**. All use the same `create_client()` interface — only the first line changes.
 
 ---
 
@@ -15,6 +15,7 @@ Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**,
 | **Google Gemini** | gemini-3.8-flash / gemini-2.5-flash / gemini-2.5-pro | ✅ (tool calling) | ✅ | LLM only — no embedder path in this repo (pair with an OpenAI-compatible embedder). Needs `hyperextract[google]`. Keys: `GOOGLE_API_KEY` or `GEMINI_API_KEY`. Alias: `gemini` |
 | **DeepSeek** | deepseek-v4-flash / deepseek-v4-pro | ✅ | ✅ | OpenAI-compatible. V4 models default to "thinking" mode, which Hyper-Extract auto-disables (`extra_body`) so structured extraction works. LLM only — no embeddings API. Keys: `DEEPSEEK_API_KEY` |
 | **OrcaRouter** | `orcarouter/auto`, `openai/gpt-4o-mini`, `anthropic/claude-haiku-4-5`, `deepseek/...`, `gemini/...` | ✅ | ✅ | OpenAI-compatible gateway routing 150+ models from OpenAI, Anthropic, Google, DeepSeek, Qwen, MiniMax, xAI behind one endpoint and key. Keys: `ORCAROUTER_API_KEY` |
+| **Atlas Cloud** | `deepseek-ai/deepseek-v4-flash`, `deepseek-ai/deepseek-v4-pro`, `moonshotai/kimi-k3`, `qwen/qwen3.5-plus`, `openai/gpt-5.5`, `anthropic/claude-sonnet-4.6` | ✅ | ✅ | OpenAI-compatible gateway serving DeepSeek, Z.ai, Moonshot, Qwen, MiniMax, OpenAI, Anthropic and Google models under vendor-prefixed ids. LLM only — no embeddings API. `glm-5.x` models reject the forced `tool_choice` structured extraction uses; pick another model. Keys: `ATLASCLOUD_API_KEY` |
 | **Alibaba Bailian** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | Works out of the box |
 | **Alibaba Bailian** | qwen-max / deepseek-v3 | ❌ | ❌ | Only `json_object`; not compatible with function-calling structured output |
 
@@ -79,6 +80,15 @@ llm, emb = create_client(
 # namespaced ids like "openai:gpt-4o-mini" or "anthropic:claude-haiku-4-5".
 # Key: ORCAROUTER_API_KEY (fallback: OPENAI_API_KEY).
 llm, emb = create_client("orcarouter")
+
+# Atlas Cloud — OpenAI-compatible gateway with vendor-prefixed model ids
+# (deepseek-ai/..., moonshotai/..., qwen/..., openai/..., anthropic/...).
+# LLM only — pair it with an OpenAI-compatible embedder.
+# Key: ATLASCLOUD_API_KEY. Override model with "atlascloud:moonshotai/kimi-k3".
+llm, emb = create_client(
+    llm="atlascloud",
+    embedder="openai:text-embedding-3-small",
+)
 
 # Local vLLM
 llm, emb = create_client(

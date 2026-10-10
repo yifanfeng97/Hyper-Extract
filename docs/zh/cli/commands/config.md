@@ -30,6 +30,7 @@ he config [COMMAND] [OPTIONS]
 - **DeepSeek preset**: `deepseek-v4-flash`（仅 LLM —— 无嵌入预设）
 - **Anthropic preset**: `claude-opus-4-8`（仅 LLM —— 无嵌入预设，请搭配 OpenAI 兼容嵌入器）
 - **OrcaRouter preset**: `orcarouter/auto`（OpenAI 兼容网关；密钥 `ORCAROUTER_API_KEY`）
+- **Atlas Cloud preset**: `deepseek-ai/deepseek-v4-flash`（仅 LLM —— 无嵌入预设，请搭配 OpenAI 兼容嵌入器；密钥 `ATLASCLOUD_API_KEY`）
 - **Google Gemini preset**: `gemini-3.8-flash`（仅 LLM —— 无嵌入预设，请搭配 OpenAI 兼容嵌入器；别名 `gemini`）
 
 ```bash
@@ -40,7 +41,7 @@ he config init [OPTIONS]
 
 | 选项 | 简写 | 描述 |
 |--------|-------|-------------|
-| `--provider` | `-p` | 提供商 preset (`openai` / `anthropic` / `google` / `orcarouter` / `deepseek` / `bailian` / `vllm`) |
+| `--provider` | `-p` | 提供商 preset (`openai` / `anthropic` / `google` / `orcarouter` / `atlascloud` / `deepseek` / `bailian` / `vllm`) |
 | `--api-key` | `-k` | LLM 和嵌入模型的 API 密钥 |
 | `--base-url` | `-u` | 自定义 API 基础 URL（可选） |
 
@@ -65,6 +66,10 @@ he config embedder -p openai -k sk-your-openai-key
 
 # OrcaRouter（OpenAI 兼容网关）
 he config init -p orcarouter -k or-your-orcarouter-key
+
+# Atlas Cloud（仅 LLM —— 请搭配 OpenAI 兼容嵌入器）
+he config llm -p atlascloud -k your-atlascloud-key
+he config embedder -p openai -k sk-your-openai-key
 
 # Google Gemini（仅 LLM —— 请搭配 OpenAI 兼容嵌入器）
 he config llm -p google -k your-google-api-key
@@ -123,7 +128,7 @@ he config llm [OPTIONS]
 
 | 选项 | 简写 | 描述 |
 |--------|-------|-------------|
-| `--provider` | `-p` | 提供商 preset（如 `openai`、`anthropic`、`google`、`orcarouter`、`deepseek`、`bailian`、`vllm`） |
+| `--provider` | `-p` | 提供商 preset（如 `openai`、`anthropic`、`google`、`orcarouter`、`atlascloud`、`deepseek`、`bailian`、`vllm`） |
 | `--api-key` | `-k` | LLM API 密钥 |
 | `--model` | `-m` | LLM 模型名称 |
 | `--base-url` | `-u` | 自定义 API 基础 URL |
@@ -166,7 +171,7 @@ he config embedder [OPTIONS]
 
 | 选项 | 简写 | 描述 |
 |--------|-------|-------------|
-| `--provider` | `-p` | 提供商 preset（如 `openai`、`anthropic`、`google`、`orcarouter`、`deepseek`、`bailian`、`vllm`） |
+| `--provider` | `-p` | 提供商 preset（如 `openai`、`anthropic`、`google`、`orcarouter`、`atlascloud`、`deepseek`、`bailian`、`vllm`） |
 | `--api-key` | `-k` | 嵌入模型 API 密钥 |
 | `--model` | `-m` | 嵌入模型名称 |
 | `--base-url` | `-u` | 自定义 API 基础 URL |

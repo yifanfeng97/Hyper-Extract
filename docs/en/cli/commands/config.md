@@ -30,6 +30,7 @@ Initialize configuration. This is the **lazy one-step setup** — if you pass `-
 - **DeepSeek preset**: `deepseek-v4-flash` (LLM only — no embedder preset)
 - **Anthropic preset**: `claude-opus-4-8` (LLM only — no embedder preset, pair with an OpenAI-compatible embedder)
 - **OrcaRouter preset**: `orcarouter/auto` (OpenAI-compatible gateway; key `ORCAROUTER_API_KEY`)
+- **Atlas Cloud preset**: `deepseek-ai/deepseek-v4-flash` (LLM only — no embedder preset, pair with an OpenAI-compatible embedder; key `ATLASCLOUD_API_KEY`)
 - **Google Gemini preset**: `gemini-3.8-flash` (LLM only — no embedder preset, pair with an OpenAI-compatible embedder; alias `gemini`)
 
 ```bash
@@ -40,7 +41,7 @@ he config init [OPTIONS]
 
 | Option | Short | Description |
 |--------|-------|-------------|
-| `--provider` | `-p` | Provider preset (`openai` / `anthropic` / `google` / `orcarouter` / `deepseek` / `bailian` / `vllm`) |
+| `--provider` | `-p` | Provider preset (`openai` / `anthropic` / `google` / `orcarouter` / `atlascloud` / `deepseek` / `bailian` / `vllm`) |
 | `--api-key` | `-k` | API key for both LLM and embedder |
 | `--base-url` | `-u` | Custom API base URL (optional) |
 
@@ -65,6 +66,10 @@ he config embedder -p openai -k sk-your-openai-key
 
 # OrcaRouter (OpenAI-compatible gateway)
 he config init -p orcarouter -k or-your-orcarouter-key
+
+# Atlas Cloud (LLM only — pair with an OpenAI-compatible embedder)
+he config llm -p atlascloud -k your-atlascloud-key
+he config embedder -p openai -k sk-your-openai-key
 
 # Google Gemini (LLM only — pair with an OpenAI-compatible embedder)
 he config llm -p google -k your-google-api-key
@@ -123,7 +128,7 @@ he config llm [OPTIONS]
 
 | Option | Short | Description |
 |--------|-------|-------------|
-| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `deepseek`, `bailian`, `vllm`) |
+| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `deepseek`, `bailian`, `vllm`) |
 | `--api-key` | `-k` | LLM API key |
 | `--model` | `-m` | LLM model name |
 | `--base-url` | `-u` | Custom API base URL |
@@ -166,7 +171,7 @@ he config embedder [OPTIONS]
 
 | Option | Short | Description |
 |--------|-------|-------------|
-| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `deepseek`, `bailian`, `vllm`) |
+| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `deepseek`, `bailian`, `vllm`) |
 | `--api-key` | `-k` | Embedder API key |
 | `--model` | `-m` | Embedder model name |
 | `--base-url` | `-u` | Custom API base URL |

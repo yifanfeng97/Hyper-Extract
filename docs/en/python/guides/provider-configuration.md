@@ -1,6 +1,6 @@
 # Provider Configuration Guide
 
-Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, or local vLLM deployments.
+Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, or local vLLM deployments.
 
 ---
 
@@ -64,6 +64,23 @@ llm, emb = create_client("orcarouter")
 # Or override the model: create_client("orcarouter:openai/gpt-4o-mini", ...)
 ```
 
+### Atlas Cloud
+
+```python
+from hyperextract import create_client, AutoGraph
+
+# Atlas Cloud is an OpenAI-compatible gateway (DeepSeek, Z.ai, Moonshot, Qwen,
+# MiniMax, OpenAI, Anthropic, Google) with vendor-prefixed model ids.
+# LLM only — pair it with an OpenAI-compatible embedder.
+# Key: ATLASCLOUD_API_KEY (fallback: OPENAI_API_KEY).
+llm, emb = create_client(
+    llm="atlascloud",
+    embedder="openai:text-embedding-3-small",
+)
+# Or override the model: create_client(llm="atlascloud:moonshotai/kimi-k3", ...)
+# Avoid glm-5.x here: it rejects the forced tool_choice that extraction uses.
+```
+
 ### Local vLLM
 
 ```python
@@ -104,6 +121,7 @@ print(f"Nodes: {len(graph.nodes)}, Edges: {len(graph.edges)}")
 | **Anthropic** | `he config llm -p anthropic -k sk-ant-xxx` + `he config embedder -p openai -k sk-xxx` |
 | **DeepSeek** | `he config llm -p deepseek -k sk-xxx` + `he config embedder -p openai -k sk-xxx` |
 | **OrcaRouter** | `he config init -p orcarouter -k sk-orca-xxx` |
+| **Atlas Cloud** | `he config llm -p atlascloud -k xxx` + `he config embedder -p openai -k sk-xxx` |
 | **vLLM** | `he config init` → select "local vLLM" |
 | **Mixed** (LLM=Bailian, Embedder=vLLM) | `he config llm -p bailian -k sk-xxx` + `he config embedder -p vllm -u http://localhost:8001/v1 -k dummy` |
 
