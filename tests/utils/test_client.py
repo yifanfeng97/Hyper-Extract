@@ -134,6 +134,24 @@ class TestCreateLLM:
         )
         assert llm.extra_body == {"thinking": {"type": "enabled"}}
 
+    def test_create_llm_atlascloud(self):
+        """Create LLM with atlascloud preset (OpenAI-compatible gateway)."""
+        llm = create_llm("atlascloud", api_key="apikey-test")
+        assert llm.model_name == "deepseek-ai/deepseek-v4-flash"
+        assert llm.openai_api_base == "https://api.atlascloud.ai/v1"
+
+    def test_create_llm_atlascloud_model_override(self):
+        """A vendor-prefixed Atlas Cloud model id after the colon is kept whole."""
+        llm = create_llm("atlascloud:moonshotai/kimi-k3", api_key="apikey-test")
+        assert llm.model_name == "moonshotai/kimi-k3"
+        assert llm.openai_api_base == "https://api.atlascloud.ai/v1"
+
+    def test_create_llm_atlascloud_env_key(self, monkeypatch):
+        """Atlas Cloud key is read from ATLASCLOUD_API_KEY when api_key is omitted."""
+        monkeypatch.setenv("ATLASCLOUD_API_KEY", "apikey-from-env")
+        llm = create_llm("atlascloud")
+        assert llm.openai_api_key.get_secret_value() == "apikey-from-env"
+
     def test_create_llm_orcarouter(self):
         """Create LLM with orcarouter preset (OpenAI-compatible gateway)."""
         llm = create_llm("orcarouter", api_key="sk-test")
@@ -596,6 +614,14 @@ class TestProviderPresets:
         preset = PROVIDER_PRESETS["deepseek"]
         assert preset["base_url"] == "https://api.deepseek.com"
         assert preset["default_llm"] == "deepseek-v4-flash"
+        assert preset["default_embedder"] is None
+
+    def test_atlascloud_provider(self):
+        """Atlas Cloud has its own preset (OpenAI-compatible, LLM only)."""
+        assert "atlascloud" in PROVIDER_PRESETS
+        preset = PROVIDER_PRESETS["atlascloud"]
+        assert preset["base_url"] == "https://api.atlascloud.ai/v1"
+        assert preset["default_llm"] == "deepseek-ai/deepseek-v4-flash"
         assert preset["default_embedder"] is None
 
     def test_orcarouter_provider(self):

@@ -1,6 +1,6 @@
 # Provider 系统
 
-Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
+Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
 
 ---
 
@@ -15,6 +15,7 @@ Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google G
 | **Google Gemini** | gemini-3.8-flash / gemini-2.5-flash / gemini-2.5-pro | ✅（工具调用） | ✅ | 仅 LLM——本仓库无成熟嵌入路径（请搭配 OpenAI 兼容嵌入器）。需 `hyperextract[google]`。密钥：`GOOGLE_API_KEY` 或 `GEMINI_API_KEY`。别名：`gemini` |
 | **DeepSeek** | deepseek-v4-flash / deepseek-v4-pro | ✅ | ✅ | OpenAI 兼容。V4 模型默认开启"thinking"模式，Hyper-Extract 会自动关闭以保证结构化抽取可用。仅 LLM——无嵌入接口。密钥：`DEEPSEEK_API_KEY` |
 | **OrcaRouter** | `orcarouter/auto`、`openai/gpt-4o-mini`、`anthropic/claude-haiku-4-5`、`deepseek/...`、`gemini/...` | ✅ | ✅ | OpenAI 兼容网关，用同一端点和密钥路由 OpenAI、Anthropic、Google、DeepSeek、Qwen、MiniMax、xAI 等 150+ 模型。密钥：`ORCAROUTER_API_KEY` |
+| **Atlas Cloud** | `deepseek-ai/deepseek-v4-flash`、`deepseek-ai/deepseek-v4-pro`、`moonshotai/kimi-k3`、`qwen/qwen3.5-plus`、`openai/gpt-5.5`、`anthropic/claude-sonnet-4.6` | ✅ | ✅ | OpenAI 兼容网关，模型 id 带厂商前缀，覆盖 DeepSeek、智谱、月之暗面、Qwen、MiniMax、OpenAI、Anthropic、Google 等。仅 LLM —— 无嵌入 API。`glm-5.x` 不接受结构化抽取使用的强制 `tool_choice`，请换其他模型。密钥：`ATLASCLOUD_API_KEY` |
 | **阿里云百炼** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | 直接使用，无需修改 |
 | **阿里云百炼** | qwen-max / deepseek-v3 | ❌ | ❌ | 仅支持 `json_object`，不兼容 function calling 结构化输出 |
 
@@ -77,6 +78,15 @@ llm, emb = create_client(
 # "anthropic:claude-haiku-4-5" 等命名空间 id 覆盖。
 # 密钥：ORCAROUTER_API_KEY（回退：OPENAI_API_KEY）。
 llm, emb = create_client("orcarouter")
+
+# Atlas Cloud —— OpenAI 兼容网关，模型 id 带厂商前缀
+# （deepseek-ai/...、moonshotai/...、qwen/...、openai/...、anthropic/...）。
+# 仅 LLM —— 请搭配 OpenAI 兼容嵌入器。
+# 密钥：ATLASCLOUD_API_KEY。可用 "atlascloud:moonshotai/kimi-k3" 覆盖模型。
+llm, emb = create_client(
+    llm="atlascloud",
+    embedder="openai:text-embedding-3-small",
+)
 
 # 本地 vLLM
 llm, emb = create_client(

@@ -63,6 +63,17 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
         "default_llm": "orcarouter/auto",
         "default_embedder": "openai/text-embedding-3-small",
     },
+    # Atlas Cloud. OpenAI-compatible aggregator serving DeepSeek, Z.ai, Moonshot,
+    # Qwen, MiniMax, OpenAI, Anthropic and Google models under vendor-prefixed
+    # ids such as "deepseek-ai/deepseek-v4-flash". Forced tool_choice (which
+    # method="function_calling" relies on) works for these models without
+    # disabling thinking, except glm-5.x, which answers 400. Atlas Cloud has no
+    # embeddings API — pair it with an OpenAI-compatible embedder.
+    "atlascloud": {
+        "base_url": "https://api.atlascloud.ai/v1",
+        "default_llm": "deepseek-ai/deepseek-v4-flash",
+        "default_embedder": None,
+    },
     # Anthropic (Claude). Uses the native ChatAnthropic client, so base_url is
     # left empty (the SDK targets api.anthropic.com by default). Anthropic has
     # no embeddings API, hence default_embedder is None — pair it with an
@@ -113,6 +124,7 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "gemini": ("GOOGLE_API_KEY", "GEMINI_API_KEY"),
     "deepseek": ("DEEPSEEK_API_KEY",),
     "orcarouter": ("ORCAROUTER_API_KEY",),
+    "atlascloud": ("ATLASCLOUD_API_KEY",),
 }
 
 
