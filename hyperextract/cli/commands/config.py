@@ -160,7 +160,7 @@ def llm(
         None,
         "--provider",
         "-p",
-        help="Provider preset: openai, anthropic, google, deepseek, bailian, orcarouter, atlascloud, runcrate, vllm",
+        help="Provider preset: openai, anthropic, google, deepseek, bailian, orcarouter, atlascloud, runcrate, llmbuzz, vllm",
     ),
     api_key: str | None = typer.Option(
         None,
@@ -221,7 +221,7 @@ def embedder(
         None,
         "--provider",
         "-p",
-        help="Provider preset: openai, anthropic, google, deepseek, bailian, orcarouter, atlascloud, runcrate, vllm",
+        help="Provider preset: openai, anthropic, google, deepseek, bailian, orcarouter, atlascloud, runcrate, llmbuzz, vllm",
     ),
     api_key: str | None = typer.Option(
         None,
@@ -284,7 +284,7 @@ def init(
         None,
         "--provider",
         "-p",
-        help="Provider preset: openai, anthropic, google, deepseek, bailian, orcarouter, atlascloud, runcrate, vllm",
+        help="Provider preset: openai, anthropic, google, deepseek, bailian, orcarouter, atlascloud, runcrate, llmbuzz, vllm",
     ),
     api_key: str | None = typer.Option(
         None,
@@ -398,6 +398,7 @@ def init(
         ("google", "Google Gemini", "native SDK"),
         ("atlascloud", "Atlas Cloud", "https://api.atlascloud.ai/v1"),
         ("runcrate", "Runcrate", "https://api.runcrate.ai/v1"),
+        ("llmbuzz", "llm.buzz", "https://api.llm.buzz/api/v1"),
         ("vllm", "本地 vLLM", "自定义地址"),
         ("custom", "其他 OpenAI 兼容接口", "自定义地址"),
     ]

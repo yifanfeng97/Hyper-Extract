@@ -95,6 +95,14 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
         "default_llm": "deepseek-ai/DeepSeek-V4.1-Flash",
         "default_embedder": "BAAI/bge-m3",
     },
+    # llm.buzz. OpenAI-compatible gateway with vendor-prefixed model ids such as
+    # "openai/gpt-5.4-mini" (list: GET https://api.llm.buzz/api/v1/models).
+    # LLM only here, so pair it with an OpenAI-compatible embedder.
+    "llmbuzz": {
+        "base_url": "https://api.llm.buzz/api/v1",
+        "default_llm": "openai/gpt-5.4-mini",
+        "default_embedder": None,
+    },
     # Anthropic (Claude). Uses the native ChatAnthropic client, so base_url is
     # left empty (the SDK targets api.anthropic.com by default). Anthropic has
     # no embeddings API, hence default_embedder is None — pair it with an
@@ -149,6 +157,7 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "api-route": ("API_ROUTE_API_KEY",),
     "atlascloud": ("ATLASCLOUD_API_KEY",),
     "runcrate": ("RUNCRATE_API_KEY",),
+    "llmbuzz": ("LLM_BUZZ_API_KEY",),
 }
 
 

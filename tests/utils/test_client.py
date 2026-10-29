@@ -178,6 +178,19 @@ class TestCreateLLM:
         llm = create_llm("runcrate")
         assert llm.openai_api_key.get_secret_value() == "rc-from-env"
 
+    def test_create_llm_llmbuzz(self):
+        """Create LLM with llmbuzz preset (OpenAI-compatible gateway)."""
+        llm = create_llm("llmbuzz", api_key="lb-test")
+        assert llm.model_name == "openai/gpt-5.4-mini"
+        assert llm.openai_api_base == "https://api.llm.buzz/api/v1"
+
+    def test_create_llm_llmbuzz_env_key(self, monkeypatch):
+        """llm.buzz key is read from LLM_BUZZ_API_KEY, ahead of OPENAI_API_KEY."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-test")
+        monkeypatch.setenv("LLM_BUZZ_API_KEY", "lb-from-env")
+        llm = create_llm("llmbuzz")
+        assert llm.openai_api_key.get_secret_value() == "lb-from-env"
+
     def test_create_llm_orcarouter(self):
         """Create LLM with orcarouter preset (OpenAI-compatible gateway)."""
         llm = create_llm("orcarouter", api_key="sk-test")
@@ -670,6 +683,14 @@ class TestProviderPresets:
         assert preset["base_url"] == "https://api.runcrate.ai/v1"
         assert preset["default_llm"] == "deepseek-ai/DeepSeek-V4.1-Flash"
         assert preset["default_embedder"] == "BAAI/bge-m3"
+
+    def test_llmbuzz_provider(self):
+        """llm.buzz has its own preset (LLM only, no embedder)."""
+        assert "llmbuzz" in PROVIDER_PRESETS
+        preset = PROVIDER_PRESETS["llmbuzz"]
+        assert preset["base_url"] == "https://api.llm.buzz/api/v1"
+        assert preset["default_llm"] == "openai/gpt-5.4-mini"
+        assert preset["default_embedder"] is None
 
     def test_orcarouter_provider(self):
         """OrcaRouter has its own preset (OpenAI-compatible, named models)."""
