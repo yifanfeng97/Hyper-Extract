@@ -5,12 +5,25 @@ from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 
+from hyperextract.utils.client import (
+    ANTHROPIC_PROVIDERS,
+    GOOGLE_PROVIDERS,
+    PROVIDER_PRESETS,
+)
 from hyperextract.utils.logging import get_logger
 
 from ..config import ConfigManager
 
 logger = get_logger("he.config")
 console = Console()
+
+
+# Aliases share a canonical preset's config; list each provider once.
+_PROVIDER_ALIASES = frozenset(ANTHROPIC_PROVIDERS[1:]) | frozenset(GOOGLE_PROVIDERS[1:])
+_CANONICAL_PROVIDERS = tuple(
+    name for name in PROVIDER_PRESETS if name not in _PROVIDER_ALIASES
+)
+_PROVIDER_HELP = ", ".join(_CANONICAL_PROVIDERS)
 
 
 def _preset_embedder_model(preset: dict) -> str | None:
@@ -160,7 +173,7 @@ def llm(
         None,
         "--provider",
         "-p",
-        help="Provider preset: openai, anthropic, google, deepseek, bailian, orcarouter, atlascloud, runcrate, vllm",
+        help=f"Provider preset: {_PROVIDER_HELP}",
     ),
     api_key: str | None = typer.Option(
         None,
@@ -221,7 +234,7 @@ def embedder(
         None,
         "--provider",
         "-p",
-        help="Provider preset: openai, anthropic, google, deepseek, bailian, orcarouter, atlascloud, runcrate, vllm",
+        help=f"Provider preset: {_PROVIDER_HELP}",
     ),
     api_key: str | None = typer.Option(
         None,
@@ -284,7 +297,7 @@ def init(
         None,
         "--provider",
         "-p",
-        help="Provider preset: openai, anthropic, google, deepseek, bailian, orcarouter, atlascloud, runcrate, vllm",
+        help=f"Provider preset: {_PROVIDER_HELP}",
     ),
     api_key: str | None = typer.Option(
         None,
@@ -309,8 +322,6 @@ def init(
 
     # Quick mode: provider + api_key provided
     if provider and api_key:
-        from hyperextract.utils.client import PROVIDER_PRESETS
-
         preset = PROVIDER_PRESETS.get(provider, {})
         preset_llm = preset.get("default_llm")
         llm_model = preset_llm or "gpt-4o-mini"
@@ -386,8 +397,6 @@ def init(
     console.print("[bold blue]Hyper-Extract Configuration Setup[/bold blue]")
     console.print()
 
-    from hyperextract.utils.client import PROVIDER_PRESETS
-
     console.print("[bold]Step 1: Choose Provider[/bold]")
     providers = [
         ("openai", "OpenAI", "https://api.openai.com/v1"),
@@ -401,14 +410,24 @@ def init(
         ("vllm", "本地 vLLM", "自定义地址"),
         ("custom", "其他 OpenAI 兼容接口", "自定义地址"),
     ]
+    # Any preset missing from the curated list above is still selectable, so a
+    # newly registered provider never silently drops out of this menu.
+    listed = {key for key, _name, _url in providers}
+    for key in _CANONICAL_PROVIDERS:
+        if key not in listed:
+            providers.insert(
+                -1, (key, key, PROVIDER_PRESETS[key].get("base_url") or "自定义地址")
+            )
+
     for i, (key, name, url) in enumerate(providers, 1):
         console.print(f"  [{i}] {name:<20} ({url})")
 
     choice = console.input(f"\n请选择 [1-{len(providers)}]: ").strip()
-    try:
-        selected = providers[int(choice) - 1][0] if choice.isdigit() else "openai"
-    except (IndexError, ValueError):
-        selected = "openai"
+    # 1-based menu: reject 0 and anything out of range instead of letting
+    # providers[-1] silently select the last entry.
+    selected = "openai"
+    if choice.isdigit() and 1 <= int(choice) <= len(providers):
+        selected = providers[int(choice) - 1][0]
 
     preset = PROVIDER_PRESETS.get(selected, {})
     preset_url = preset.get("base_url") or ""

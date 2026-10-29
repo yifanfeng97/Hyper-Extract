@@ -412,3 +412,72 @@ def test_get_llm_and_embedder_config_read_runcrate_env_key(tmp_path, monkeypatch
     assert emb_cfg.api_key == "rc-from-env"
     assert emb_cfg.base_url == "https://api.runcrate.ai/v1"
 
+
+
+def test_provider_help_lists_every_registered_preset():
+    """The --provider help text is derived, so a new preset cannot drift out."""
+    from hyperextract.cli.commands.config import _PROVIDER_HELP
+    from hyperextract.utils.client import PROVIDER_PRESETS
+
+    for name in ("cheaperinference", "api-route", "atlascloud", "runcrate"):
+        assert name in PROVIDER_PRESETS
+        assert name in _PROVIDER_HELP
+    # Aliases are listed once, under their canonical name.
+    assert "claude" not in _PROVIDER_HELP.split(", ")
+    assert "gemini" not in _PROVIDER_HELP.split(", ")
+
+
+def test_interactive_init_offers_every_registered_preset(tmp_path, monkeypatch):
+    """Presets missing from the curated menu are appended, not dropped."""
+    from hyperextract.cli.commands import config as config_cmd
+
+    _isolate_default_config(tmp_path, monkeypatch)
+    printed: list[str] = []
+    monkeypatch.setattr(
+        config_cmd.console, "print", lambda *a, **k: printed.append(str(a[0]) if a else "")
+    )
+    # Abort right after the provider menu is rendered.
+    monkeypatch.setattr(
+        config_cmd.console, "input", lambda *a, **k: (_ for _ in ()).throw(EOFError)
+    )
+
+    try:
+        config_cmd.init(provider=None, api_key=None, base_url=None)
+    except EOFError:
+        pass
+
+    menu = "\n".join(printed)
+    assert "cheaperinference" in menu
+    assert "api-route" in menu
+
+
+def test_interactive_init_rejects_zero_choice(tmp_path, monkeypatch):
+    """`0` must not select the last menu entry via negative indexing."""
+    from hyperextract.cli.commands import config as config_cmd
+
+    _isolate_default_config(tmp_path, monkeypatch)
+    printed: list[str] = []
+    monkeypatch.setattr(
+        config_cmd.console,
+        "print",
+        lambda *a, **k: printed.append(str(a[0]) if a else ""),
+    )
+    # "0" for the menu, then abort — the prompts after it are not under test.
+    answers = iter(["0"])
+
+    def _input(*_args, **_kwargs):
+        try:
+            return next(answers)
+        except StopIteration:
+            raise EOFError from None
+
+    monkeypatch.setattr(config_cmd.console, "input", _input)
+
+    with pytest.raises(EOFError):
+        config_cmd.init(provider=None, api_key=None, base_url=None)
+
+    # Step 2 echoes the selection; "0" must not land on providers[-1].
+    step2 = [line for line in printed if "Step 2" in line]
+    assert step2, printed
+    assert "Provider: custom" not in step2[0]
+    assert "Provider: openai" in step2[0]
