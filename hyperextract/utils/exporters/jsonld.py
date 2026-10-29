@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 from hyperextract.utils.logging import get_logger
 
-from .common import incident_ids, resolve_nodes, scalar_fields
+from .common import incident_ids, resolve_nodes
 
 logger = get_logger(__name__)
 
@@ -133,12 +133,34 @@ def export_to_jsonld(
     return dest
 
 
-def _public_fields(model: BaseModel) -> dict[str, str | int | float | bool]:
-    return {
-        key: value
-        for key, value in scalar_fields(model).items()
-        if key not in _RESERVED_KEYS
-    }
+def _json_safe(value: Any) -> Any:
+    """Keep JSON-native values as they are; stringify anything else.
+
+    JSON-LD is JSON, so objects and arrays round-trip natively. Values JSON
+    cannot represent (datetimes, sets, Decimals, ...) still fall back to
+    ``str()`` so the document always serializes.
+    """
+    try:
+        json.dumps(value)
+    except (TypeError, ValueError):
+        return str(value)
+    return value
+
+
+def _public_fields(model: BaseModel) -> dict[str, Any]:
+    """Exportable fields, keeping JSON structure (unlike the CSV/GraphML path).
+
+    ``None`` and empty containers are omitted, matching
+    :func:`~hyperextract.utils.exporters.common.scalar_fields`.
+    """
+    fields: dict[str, Any] = {}
+    for key, value in model.model_dump().items():
+        if key in _RESERVED_KEYS or value is None:
+            continue
+        if value == [] or value == {}:
+            continue
+        fields[key] = _json_safe(value)
+    return fields
 
 
 def _edge_id(edge: Any, index: int, extractor: Callable[[Any], str] | None) -> str:

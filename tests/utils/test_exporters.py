@@ -227,6 +227,63 @@ def _load_jsonld(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+class TestJSONLDStructuredValues:
+    """JSON-LD is JSON: objects and arrays must not become Python reprs."""
+
+    @staticmethod
+    def _export(tmp_path, nodes):
+        return _load_jsonld(
+            export_to_jsonld(
+                nodes,
+                [],
+                node_id_extractor=lambda n: n.name,
+                incident_nodes_extractor=lambda e: (),
+                file_path=tmp_path / "g.jsonld",
+            )
+        )
+
+    def test_dict_field_stays_an_object(self, tmp_path):
+        doc = self._export(
+            tmp_path, [Entity(name="A", properties={"founded": 1976, "ceo": "Tim"})]
+        )
+        node = doc["@graph"][0]
+
+        assert node["properties"] == {"founded": 1976, "ceo": "Tim"}
+
+    def test_list_field_stays_an_array(self, tmp_path):
+        class Aliased(BaseModel):
+            name: str
+            aliases: List[str]
+
+        doc = self._export(
+            tmp_path, [Aliased(name="A", aliases=["AAPL", "Apple Inc"])]
+        )
+
+        assert doc["@graph"][0]["aliases"] == ["AAPL", "Apple Inc"]
+
+    def test_unserializable_value_falls_back_to_string(self, tmp_path):
+        from datetime import datetime
+
+        class Dated(BaseModel):
+            name: str
+            seen_at: datetime
+
+        doc = self._export(
+            tmp_path, [Dated(name="A", seen_at=datetime(2026, 1, 2, 3, 4))]
+        )
+
+        assert isinstance(doc["@graph"][0]["seen_at"], str)
+        assert "2026-01-02" in doc["@graph"][0]["seen_at"]
+
+    def test_empty_containers_are_still_omitted(self, tmp_path):
+        doc = self._export(tmp_path, [Entity(name="A")])
+        node = doc["@graph"][0]
+
+        assert "properties" not in node
+        assert "note" not in node
+        assert node["active"] is True
+
+
 class TestJSONLDExport:
     def test_pairwise_has_source_target(self, tmp_path):
         nodes = [Entity(name="A"), Entity(name="B")]
