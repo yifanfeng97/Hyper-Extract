@@ -1,6 +1,6 @@
 # Provider System
 
-Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cheaper Inference**, and **local vLLM**. All use the same `create_client()` interface — only the first line changes.
+Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **CloudGPU**, **Cheaper Inference**, and **local vLLM**. All use the same `create_client()` interface — only the first line changes.
 
 ---
 
@@ -19,6 +19,7 @@ Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**,
 | **API Route** | gpt-6.1-sol | ✅ | ✅ | OpenAI-compatible LLM preset. Configure an embedding provider separately. Key: `API_ROUTE_API_KEY`. [Setup guide](../python/guides/provider-configuration.md#api-route) |
 | **Atlas Cloud** | `deepseek-ai/deepseek-v4-flash`, `deepseek-ai/deepseek-v4-pro`, `moonshotai/kimi-k3`, `qwen/qwen3.5-plus`, `openai/gpt-5.5`, `anthropic/claude-sonnet-4.6` | ✅ | ✅ | OpenAI-compatible gateway serving DeepSeek, Z.ai, Moonshot, Qwen, MiniMax, OpenAI, Anthropic and Google models under vendor-prefixed ids. LLM only — no embeddings API. `glm-5.x` models reject the forced `tool_choice` structured extraction uses; pick another model. Keys: `ATLASCLOUD_API_KEY` |
 | **Runcrate** | `deepseek-ai/DeepSeek-V4.1-Flash`, `openai/gpt-oss-120b` | ✅ | ✅ | OpenAI-compatible API for open models under vendor-prefixed ids. Also serves embeddings (`BAAI/bge-m3`, 1024 dims), so one key covers the LLM and the embedder. Open models are free with your GitHub account. `zai-org/GLM-5.x` returned an empty graph in testing; pick another model. Keys: `RUNCRATE_API_KEY` |
+| **CloudGPU** | `deepseek-v4.1-flash` | ✅ | ✅ | OpenAI-compatible LLM preset. Model ids have no vendor prefix. Configure an embedding provider separately. Key: `CLOUDGPU_API_KEY`. [Setup guide](../python/guides/provider-configuration.md#cloudgpu) |
 | **Alibaba Bailian** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | Works out of the box |
 | **Alibaba Bailian** | qwen-max / deepseek-v3 | ❌ | ❌ | Only `json_object`; not compatible with function-calling structured output |
 
@@ -99,6 +100,14 @@ llm, emb = create_client(
 llm, emb = create_client(
     llm="runcrate",  # default model: deepseek-ai/DeepSeek-V4.1-Flash
     embedder="runcrate",  # default embedder: BAAI/bge-m3
+)
+
+# CloudGPU — OpenAI-compatible LLM API. Model ids have no vendor prefix.
+# CloudGPU does not serve embeddings, so pick a separate embedder.
+# Key: CLOUDGPU_API_KEY. Override model with "cloudgpu:kimi-k2.6".
+llm, emb = create_client(
+    llm="cloudgpu",  # default model: deepseek-v4.1-flash
+    embedder="openai",
 )
 
 # Cheaper Inference — OpenAI-compatible gateway, one key for models from

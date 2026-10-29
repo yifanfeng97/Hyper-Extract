@@ -31,6 +31,31 @@ he config llm -p api-route -m gpt-6.1-sol
 he config embedder -p openai -m text-embedding-3-small
 ```
 
+### CloudGPU
+
+从 [CloudGPU](https://cloudgpu.app/?utm_source=hyper-extract&utm_medium=integration&utm_campaign=202611_seg04_codingagent_api) 获取密钥并设置环境变量 `CLOUDGPU_API_KEY`。
+预设端点为 `https://cloudgpu.app/v1`，默认模型为 `deepseek-v4.1-flash`。
+模型 id 不带厂商前缀，嵌入模型需单独配置：
+
+```python
+from hyperextract import create_client
+
+# LLM 使用 CLOUDGPU_API_KEY，嵌入模型需单独选择提供商。
+llm, emb = create_client(
+    llm="cloudgpu",  # 可用 "cloudgpu:<模型 ID>" 指定其他模型
+    embedder="openai",
+)
+```
+
+可用模型以 [API 文档](https://cloudgpu.app/api/docs) 或携带密钥调用
+`GET https://cloudgpu.app/v1/models` 的响应为准（如 `kimi-k2.6`、`glm-5.2`、`minimax-m3`）。
+CLI 配置示例：
+
+```bash
+he config init -p cloudgpu -k your-cloudgpu-key
+he config embedder -p openai
+```
+
 ### OpenAI
 
 ```python
@@ -113,6 +138,7 @@ print(f"节点: {len(graph.nodes)}, 关系: {len(graph.edges)}")
 | **百炼** | `he config init -p bailian -k sk-xxx` |
 | **Anthropic** | `he config llm -p anthropic -k sk-ant-xxx` + `he config embedder -p openai -k sk-xxx` |
 | **DeepSeek** | `he config llm -p deepseek -k sk-xxx` + `he config embedder -p openai -k sk-xxx` |
+| **CloudGPU** | `he config init -p cloudgpu -k your-cloudgpu-key` + `he config embedder -p openai -k sk-xxx` |
 | **vLLM** | `he config init` → 选择「本地 vLLM」 |
 | **混合部署**（LLM=百炼 + Embedding=本地） | `he config llm -p bailian -k sk-xxx` + `he config embedder -p vllm -u http://localhost:8001/v1 -k dummy` |
 

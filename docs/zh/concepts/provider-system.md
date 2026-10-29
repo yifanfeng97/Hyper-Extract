@@ -1,6 +1,6 @@
 # Provider 系统
 
-Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**Runcrate**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
+Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**Runcrate**、**CloudGPU**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
 
 ---
 
@@ -18,6 +18,7 @@ Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google G
 | **OrcaRouter** | `orcarouter/auto`、`openai/gpt-4o-mini`、`anthropic/claude-haiku-4-5`、`deepseek/...`、`gemini/...` | ✅ | ✅ | OpenAI 兼容网关，用同一端点和密钥路由 OpenAI、Anthropic、Google、DeepSeek、Qwen、MiniMax、xAI 等 150+ 模型。密钥：`ORCAROUTER_API_KEY` |
 | **Atlas Cloud** | `deepseek-ai/deepseek-v4-flash`、`deepseek-ai/deepseek-v4-pro`、`moonshotai/kimi-k3`、`qwen/qwen3.5-plus`、`openai/gpt-5.5`、`anthropic/claude-sonnet-4.6` | ✅ | ✅ | OpenAI 兼容网关，模型 id 带厂商前缀，覆盖 DeepSeek、智谱、月之暗面、Qwen、MiniMax、OpenAI、Anthropic、Google 等。仅 LLM —— 无嵌入 API。`glm-5.x` 不接受结构化抽取使用的强制 `tool_choice`，请换其他模型。密钥：`ATLASCLOUD_API_KEY` |
 | **Runcrate** | `deepseek-ai/DeepSeek-V4.1-Flash`、`openai/gpt-oss-120b` | ✅ | ✅ | OpenAI 兼容 API，提供带厂商前缀 id 的开放模型。同时提供嵌入（`BAAI/bge-m3`，1024 维），一个密钥即可覆盖 LLM 与嵌入器。开放模型可通过 GitHub 账号免费使用。测试中 `zai-org/GLM-5.x` 抽取结果为空，请选择其他模型。密钥：`RUNCRATE_API_KEY` |
+| **CloudGPU** | `deepseek-v4.1-flash` | ✅ | ✅ | OpenAI 兼容 LLM 预设，模型 id 不带厂商前缀，嵌入模型需单独配置。密钥：`CLOUDGPU_API_KEY`。[配置指南](../python/guides/provider-configuration.md#cloudgpu) |
 | **阿里云百炼** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | 直接使用，无需修改 |
 | **阿里云百炼** | qwen-max / deepseek-v3 | ❌ | ❌ | 仅支持 `json_object`，不兼容 function calling 结构化输出 |
 
@@ -95,6 +96,14 @@ llm, emb = create_client(
 llm, emb = create_client(
     llm="runcrate",  # 默认模型：deepseek-ai/DeepSeek-V4.1-Flash
     embedder="runcrate",  # 默认嵌入器：BAAI/bge-m3
+)
+
+# CloudGPU —— OpenAI 兼容 LLM API，模型 id 不带厂商前缀。
+# 不提供嵌入，请单独选择嵌入模型。
+# 密钥：CLOUDGPU_API_KEY。可用 "cloudgpu:kimi-k2.6" 覆盖模型。
+llm, emb = create_client(
+    llm="cloudgpu",  # 默认模型：deepseek-v4.1-flash
+    embedder="openai",
 )
 
 # 本地 vLLM

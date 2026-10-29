@@ -178,6 +178,25 @@ class TestCreateLLM:
         llm = create_llm("runcrate")
         assert llm.openai_api_key.get_secret_value() == "rc-from-env"
 
+    def test_create_llm_cloudgpu(self):
+        """Create LLM with cloudgpu preset (OpenAI-compatible API)."""
+        llm = create_llm("cloudgpu", api_key="cg-test")
+        assert llm.model_name == "deepseek-v4.1-flash"
+        assert llm.openai_api_base == "https://cloudgpu.app/v1"
+
+    def test_create_llm_cloudgpu_model_override(self):
+        """A CloudGPU model id after the colon overrides the default."""
+        llm = create_llm("cloudgpu:kimi-k2.6", api_key="cg-test")
+        assert llm.model_name == "kimi-k2.6"
+        assert llm.openai_api_base == "https://cloudgpu.app/v1"
+
+    def test_create_llm_cloudgpu_env_key(self, monkeypatch):
+        """CloudGPU key is read from CLOUDGPU_API_KEY, ahead of OPENAI_API_KEY."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-test")
+        monkeypatch.setenv("CLOUDGPU_API_KEY", "cg-from-env")
+        llm = create_llm("cloudgpu")
+        assert llm.openai_api_key.get_secret_value() == "cg-from-env"
+
     def test_create_llm_orcarouter(self):
         """Create LLM with orcarouter preset (OpenAI-compatible gateway)."""
         llm = create_llm("orcarouter", api_key="sk-test")
@@ -670,6 +689,14 @@ class TestProviderPresets:
         assert preset["base_url"] == "https://api.runcrate.ai/v1"
         assert preset["default_llm"] == "deepseek-ai/DeepSeek-V4.1-Flash"
         assert preset["default_embedder"] == "BAAI/bge-m3"
+
+    def test_cloudgpu_provider(self):
+        """CloudGPU has its own preset (OpenAI-compatible, LLM only)."""
+        assert "cloudgpu" in PROVIDER_PRESETS
+        preset = PROVIDER_PRESETS["cloudgpu"]
+        assert preset["base_url"] == "https://cloudgpu.app/v1"
+        assert preset["default_llm"] == "deepseek-v4.1-flash"
+        assert preset["default_embedder"] is None
 
     def test_orcarouter_provider(self):
         """OrcaRouter has its own preset (OpenAI-compatible, named models)."""
