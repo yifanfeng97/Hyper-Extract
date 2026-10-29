@@ -412,3 +412,52 @@ def test_get_llm_and_embedder_config_read_runcrate_env_key(tmp_path, monkeypatch
     assert emb_cfg.api_key == "rc-from-env"
     assert emb_cfg.base_url == "https://api.runcrate.ai/v1"
 
+
+
+@pytest.mark.parametrize("provider", ["atlascloud", "deepseek", "anthropic"])
+def test_config_embedder_warns_for_providers_without_embeddings(
+    tmp_path, monkeypatch, provider
+):
+    """Presets documented as LLM-only must not accept an embedder silently."""
+    from typer.testing import CliRunner
+
+    from hyperextract.cli.cli import app
+
+    _isolate_default_config(tmp_path, monkeypatch)
+    result = CliRunner().invoke(
+        app, ["config", "embedder", "-p", provider, "-k", _FAKE_API_KEY, "-m", "x"]
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "no embeddings API" in result.output
+    assert "he config embedder -p openai" in result.output
+
+
+@pytest.mark.parametrize("provider", ["openai", "runcrate", "vllm"])
+def test_config_embedder_stays_quiet_for_capable_providers(
+    tmp_path, monkeypatch, provider
+):
+    """openai/runcrate serve embeddings; vllm depends on what the user runs."""
+    from typer.testing import CliRunner
+
+    from hyperextract.cli.cli import app
+
+    _isolate_default_config(tmp_path, monkeypatch)
+    result = CliRunner().invoke(
+        app,
+        [
+            "config",
+            "embedder",
+            "-p",
+            provider,
+            "-k",
+            _FAKE_API_KEY,
+            "-m",
+            "x",
+            "-u",
+            "http://localhost:8001/v1",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "no embeddings API" not in result.output
