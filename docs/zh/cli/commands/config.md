@@ -32,6 +32,9 @@ he config [COMMAND] [OPTIONS]
 - **OrcaRouter preset**: `orcarouter/auto`（OpenAI 兼容网关；密钥 `ORCAROUTER_API_KEY`）
 - **Atlas Cloud preset**: `deepseek-ai/deepseek-v4-flash`（仅 LLM —— 无嵌入预设，请搭配 OpenAI 兼容嵌入器；密钥 `ATLASCLOUD_API_KEY`）
 - **Runcrate preset**: `deepseek-ai/DeepSeek-V4.1-Flash` + `BAAI/bge-m3`（LLM 与嵌入器共用一个密钥 `RUNCRATE_API_KEY`）
+- **Cerebras preset**: `qwen-3.8-27b`（仅 LLM —— 无嵌入预设，请搭配 OpenAI 兼容嵌入器；密钥 `CEREBRAS_API_KEY`）
+- **Mistral AI preset**: `mistral-large-latest` + `mistral-embed`（LLM 与嵌入器共用一个密钥 `MISTRAL_API_KEY`）
+- **Moonshot (Kimi) preset**: `kimi-k3.1-pro`（仅 LLM —— 无嵌入预设，请搭配 OpenAI 兼容嵌入器；密钥 `MOONSHOT_API_KEY`）
 - **Google Gemini preset**: `gemini-3.8-flash`（仅 LLM —— 无嵌入预设，请搭配 OpenAI 兼容嵌入器；别名 `gemini`）
 
 ```bash
@@ -42,7 +45,7 @@ he config init [OPTIONS]
 
 | 选项 | 简写 | 描述 |
 |--------|-------|-------------|
-| `--provider` | `-p` | 提供商 preset (`openai` / `anthropic` / `google` / `orcarouter` / `atlascloud` / `runcrate` / `deepseek` / `bailian` / `vllm`) |
+| `--provider` | `-p` | 提供商 preset (`openai` / `anthropic` / `google` / `orcarouter` / `atlascloud` / `runcrate` / `moonshot` / `mistral` / `cerebras` / `deepseek` / `bailian` / `vllm`) |
 | `--api-key` | `-k` | LLM 和嵌入模型的 API 密钥 |
 | `--base-url` | `-u` | 自定义 API 基础 URL（可选） |
 
@@ -74,6 +77,17 @@ he config embedder -p openai -k sk-your-openai-key
 
 # Runcrate（LLM 与嵌入器共用一个密钥）
 he config init -p runcrate -k your-runcrate-key
+
+# Cerebras（仅 LLM —— 请搭配 OpenAI 兼容嵌入器）
+he config llm -p cerebras -k your-cerebras-key
+he config embedder -p openai -k sk-your-openai-key
+
+# Mistral AI（LLM 与嵌入器共用一个密钥）
+he config init -p mistral -k your-mistral-key
+
+# Moonshot 月之暗面 / Kimi（仅 LLM —— 请搭配 OpenAI 兼容嵌入器）
+he config llm -p moonshot -k your-moonshot-key
+he config embedder -p openai -k sk-your-openai-key
 
 # Google Gemini（仅 LLM —— 请搭配 OpenAI 兼容嵌入器）
 he config llm -p google -k your-google-api-key
@@ -132,7 +146,7 @@ he config llm [OPTIONS]
 
 | 选项 | 简写 | 描述 |
 |--------|-------|-------------|
-| `--provider` | `-p` | 提供商 preset（如 `openai`、`anthropic`、`google`、`orcarouter`、`atlascloud`、`runcrate`、`deepseek`、`bailian`、`vllm`） |
+| `--provider` | `-p` | 提供商 preset（如 `openai`、`anthropic`、`google`、`orcarouter`、`atlascloud`、`runcrate`、`moonshot`、`mistral`、`cerebras`、`deepseek`、`bailian`、`vllm`） |
 | `--api-key` | `-k` | LLM API 密钥 |
 | `--model` | `-m` | LLM 模型名称 |
 | `--base-url` | `-u` | 自定义 API 基础 URL |
@@ -175,7 +189,7 @@ he config embedder [OPTIONS]
 
 | 选项 | 简写 | 描述 |
 |--------|-------|-------------|
-| `--provider` | `-p` | 提供商 preset（如 `openai`、`anthropic`、`google`、`orcarouter`、`atlascloud`、`runcrate`、`deepseek`、`bailian`、`vllm`） |
+| `--provider` | `-p` | 提供商 preset（如 `openai`、`anthropic`、`google`、`orcarouter`、`atlascloud`、`runcrate`、`moonshot`、`mistral`、`cerebras`、`deepseek`、`bailian`、`vllm`） |
 | `--api-key` | `-k` | 嵌入模型 API 密钥 |
 | `--model` | `-m` | 嵌入模型名称 |
 | `--base-url` | `-u` | 自定义 API 基础 URL |

@@ -39,6 +39,17 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
         "default_llm": "qwen3.6-plus",
         "default_embedder": "text-embedding-v4",
     },
+    # Mistral AI. OpenAI-shaped /v1/chat/completions and /v1/embeddings, so one
+    # key covers both the LLM and the embedder ("mistral-embed", 1024 dims).
+    # `tool_choice` accepts auto/none/any/required or a named function, which is
+    # what method="function_calling" relies on. "mistral-large-latest" is the
+    # rolling alias used in Mistral's own API examples (docs.mistral.ai,
+    # 2026-11-01); pin a dated id such as "mistral-small-2506" to avoid drift.
+    "mistral": {
+        "base_url": "https://api.mistral.ai/v1",
+        "default_llm": "mistral-large-latest",
+        "default_embedder": "mistral-embed",
+    },
     "vllm": {
         "base_url": None,
         "default_llm": None,
@@ -52,6 +63,16 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
     "deepseek": {
         "base_url": "https://api.deepseek.com",
         "default_llm": "deepseek-v4-flash",
+        "default_embedder": None,
+    },
+    # Moonshot AI (Kimi). OpenAI-compatible chat endpoint. `tool_choice` accepts
+    # a named function, which is what method="function_calling" relies on. Served
+    # models are the kimi-k3.1 / k3 / k2.7 families, bare ids with no vendor
+    # prefix (platform.kimi.ai, 2026-11-01). Moonshot has no embeddings API —
+    # pair it with an OpenAI-compatible embedder.
+    "moonshot": {
+        "base_url": "https://api.moonshot.ai/v1",
+        "default_llm": "kimi-k3.1-pro",
         "default_embedder": None,
     },
     # OrcaRouter. OpenAI-compatible model routing gateway exposing 150+ models
@@ -74,6 +95,18 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
     "api-route": {
         "base_url": "https://global.api-route.com/v1",
         "default_llm": "gpt-6.1-sol",
+        "default_embedder": None,
+    },
+    # Cerebras. OpenAI-compatible inference endpoint. `tool_choice` accepts
+    # none/auto/required or a named function on every served model, which is what
+    # method="function_calling" relies on. "qwen-3.8-27b" is the id used in
+    # Cerebras's own examples and one of the shared-inference models; others such
+    # as kimi-k2.7-code are dedicated-inference only (inference-docs.cerebras.ai,
+    # 2026-11-01). Cerebras has no embeddings API — pair it with an
+    # OpenAI-compatible embedder.
+    "cerebras": {
+        "base_url": "https://api.cerebras.ai/v1",
+        "default_llm": "qwen-3.8-27b",
         "default_embedder": None,
     },
     # Atlas Cloud. OpenAI-compatible aggregator serving DeepSeek, Z.ai, Moonshot,
@@ -144,9 +177,12 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "google": ("GOOGLE_API_KEY", "GEMINI_API_KEY"),
     "gemini": ("GOOGLE_API_KEY", "GEMINI_API_KEY"),
     "deepseek": ("DEEPSEEK_API_KEY",),
+    "moonshot": ("MOONSHOT_API_KEY",),
     "orcarouter": ("ORCAROUTER_API_KEY",),
+    "mistral": ("MISTRAL_API_KEY",),
     "cheaperinference": ("CHEAPER_INFERENCE_API_KEY",),
     "api-route": ("API_ROUTE_API_KEY",),
+    "cerebras": ("CEREBRAS_API_KEY",),
     "atlascloud": ("ATLASCLOUD_API_KEY",),
     "runcrate": ("RUNCRATE_API_KEY",),
 }
