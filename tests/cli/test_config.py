@@ -412,3 +412,76 @@ def test_get_llm_and_embedder_config_read_runcrate_env_key(tmp_path, monkeypatch
     assert emb_cfg.api_key == "rc-from-env"
     assert emb_cfg.base_url == "https://api.runcrate.ai/v1"
 
+
+
+def test_get_llm_config_reads_cerebras_env_key(tmp_path, monkeypatch):
+    """Empty toml api_key must resolve CEREBRAS_API_KEY, ahead of OPENAI_API_KEY."""
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-must-not-win")
+    monkeypatch.setenv("CEREBRAS_API_KEY", "csk-from-env")
+
+    cm = ConfigManager(tmp_path / "config.toml")
+    cm.set_llm(provider="cerebras", model="qwen-3.8-27b", api_key="")
+    cfg = cm.get_llm_config()
+
+    assert cfg.api_key == "csk-from-env"
+    assert cfg.base_url == "https://api.cerebras.ai/v1"
+
+
+def test_interactive_init_lists_cerebras():
+    """he config init provider list includes Cerebras."""
+    import inspect
+
+    from hyperextract.cli.commands.config import init
+
+    assert '"cerebras"' in inspect.getsource(init)
+
+
+def test_get_llm_and_embedder_config_read_mistral_env_key(tmp_path, monkeypatch):
+    """Empty toml api_key must resolve MISTRAL_API_KEY, ahead of OPENAI_API_KEY."""
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-must-not-win")
+    monkeypatch.setenv("MISTRAL_API_KEY", "sk-mistral-from-env")
+
+    cm = ConfigManager(tmp_path / "config.toml")
+    cm.set_llm(provider="mistral", model="mistral-large-latest", api_key="")
+    cm.set_embedder(provider="mistral", model="mistral-embed", api_key="")
+
+    llm_cfg = cm.get_llm_config()
+    assert llm_cfg.api_key == "sk-mistral-from-env"
+    assert llm_cfg.base_url == "https://api.mistral.ai/v1"
+    emb_cfg = cm.get_embedder_config()
+    assert emb_cfg.api_key == "sk-mistral-from-env"
+    assert emb_cfg.base_url == "https://api.mistral.ai/v1"
+
+
+def test_interactive_init_lists_mistral():
+    """he config init provider list includes Mistral AI."""
+    import inspect
+
+    from hyperextract.cli.commands.config import init
+
+    assert '"mistral"' in inspect.getsource(init)
+
+
+def test_get_llm_config_reads_moonshot_env_key(tmp_path, monkeypatch):
+    """Empty toml api_key must resolve MOONSHOT_API_KEY, ahead of OPENAI_API_KEY."""
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-must-not-win")
+    monkeypatch.setenv("MOONSHOT_API_KEY", "sk-moonshot-from-env")
+
+    cm = ConfigManager(tmp_path / "config.toml")
+    cm.set_llm(provider="moonshot", model="kimi-k3.1-pro", api_key="")
+    cfg = cm.get_llm_config()
+
+    assert cfg.api_key == "sk-moonshot-from-env"
+    assert cfg.base_url == "https://api.moonshot.ai/v1"
+
+
+def test_interactive_init_lists_moonshot():
+    """he config init provider list includes Moonshot."""
+    import inspect
+
+    from hyperextract.cli.commands.config import init
+
+    assert '"moonshot"' in inspect.getsource(init)
