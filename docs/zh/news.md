@@ -4,6 +4,12 @@
 
 ---
 
+## v0.11.1 — Provider 预设正式发布（0.11.0 打包勘误）
+
+- **🔌 Provider 预设实际包含** — v0.11.0 的 tag 在预设合并落地前打出，Release Notes 超前于内容。v0.11.1 已包含：**API Route**、**Runcrate**、**Atlas Cloud**、**Cheaper Inference**、**Ollama**、**CloudGPU**、**llm.buzz**，以及下方全部修复。
+
+---
+
 ## v0.11.0 — 预设回归修复、新 Provider 与诊断改进
 
 - **🛠️ 0.10.5 关键修复** — 加载期 identifiers 校验把 `time_field`/`location_field` 对错了 output 段，导致 7 个已发布预设（`temporal_graph`、`spatial_graph`、`spatio_temporal_graph`、`biography_graph`、`event_timeline`、`case_fact_timeline`、`hospital_timeline`）无法创建。现按预设与校验器 HE-T006 规则对 `relations.fields` 校验。*(#184)*

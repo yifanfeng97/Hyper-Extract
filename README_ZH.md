@@ -354,7 +354,7 @@ identifiers:
 
 ## 📰 最新动态
 
-**v0.11.0** — 🛠️ 0.10.5 关键预设修复（7 个时空类模板）· 🔌 新增 API Route 与 Runcrate provider · 🛡️ 超图成员字段加载期校验。
+**v0.11.1** — 🔌 Provider 预设正式发布（API Route / Runcrate / Atlas Cloud / Cheaper Inference / Ollama / CloudGPU / llm.buzz）——v0.11.0 tag 早于预设合并，本版内容与说明一致。
 
 📰 **[完整版本说明](https://yifanfeng97.github.io/Hyper-Extract/latest/zh/news/)** · [全部 Releases](https://github.com/yifanfeng97/hyper-extract/releases)
 

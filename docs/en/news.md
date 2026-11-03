@@ -4,6 +4,12 @@ Release notes and highlights. For a complete changelog, see the [GitHub releases
 
 ---
 
+## v0.11.1 — Provider Presets Shipping (0.11.0 packaging correction)
+
+- **🔌 Provider presets actually ship** — the v0.11.0 tag went out before the preset merges landed, so its release notes were ahead of its contents. v0.11.1 includes them: **API Route**, **Runcrate**, **Atlas Cloud**, **Cheaper Inference**, **Ollama**, **CloudGPU**, **llm.buzz** — plus all fixes below.
+
+---
+
 ## v0.11.0 — Preset Regression Fix, New Providers & Diagnostics
 
 - **🛠️ Critical fix for 0.10.5** — the load-time identifiers check validated `time_field`/`location_field` against the wrong output section, breaking `Template.create` for 7 shipped presets (`temporal_graph`, `spatial_graph`, `spatio_temporal_graph`, `biography_graph`, `event_timeline`, `case_fact_timeline`, `hospital_timeline`). Now validated against `relations.fields` per the presets and the validator's HE-T006 rule. *(#184)*

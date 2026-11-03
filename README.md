@@ -354,7 +354,7 @@ identifiers:
 
 ## 📰 What's New
 
-**v0.11.0** — 🛠️ Critical 0.10.5 preset fix (7 temporal/spatial presets) · 🔌 New API Route & Runcrate providers · 🛡️ Hypergraph member-field load-time validation.
+**v0.11.1** — 🔌 Provider presets ship for real (API Route / Runcrate / Atlas Cloud / Cheaper Inference / Ollama / CloudGPU / llm.buzz) — the v0.11.0 tag predates the preset merges; content now matches the notes.
 
 📰 **[Full release notes](https://yifanfeng97.github.io/Hyper-Extract/latest/news/)** · [All releases](https://github.com/yifanfeng97/hyper-extract/releases)
 
