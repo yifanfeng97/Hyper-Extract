@@ -1,6 +1,6 @@
 # Provider Configuration Guide
 
-Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, Cheaper Inference, or local vLLM deployments.
+Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, Cheaper Inference, or local Ollama / vLLM deployments.
 
 ---
 
@@ -120,6 +120,24 @@ he config llm -p api-route -m gpt-6.1-sol
 he config embedder -p openai -m text-embedding-3-small
 ```
 
+### Ollama (local)
+
+```python
+from hyperextract import create_client
+
+# Ollama serves an OpenAI-compatible subset on http://localhost:11434/v1,
+# /v1/embeddings included, so one endpoint covers the LLM and the embedder.
+# The local server requires an api_key field but ignores its value.
+llm, emb = create_client(
+    llm="ollama",  # default model: gpt-oss:20b
+    embedder="ollama",  # default embedder: embeddinggemma
+    api_key="ollama",
+)
+# Or override the model: create_client(llm="ollama:qwen3:8b", ...)
+# Model tags keep their colon; serve from another host with
+# "ollama:qwen3:8b@http://box.local:11434/v1".
+```
+
 ### Cheaper Inference
 
 ```python
@@ -177,6 +195,7 @@ print(f"Nodes: {len(graph.nodes)}, Edges: {len(graph.edges)}")
 | **Cheaper Inference** | `he config llm -p cheaperinference -m gpt-5.4-mini -k ci_live_xxx` + `he config embedder -p openai -k sk-xxx` |
 | **Atlas Cloud** | `he config llm -p atlascloud -k xxx` + `he config embedder -p openai -k sk-xxx` |
 | **Runcrate** | `he config init -p runcrate -k rc_live_xxx` |
+| **Ollama** | `he config init -p ollama -k ollama` (key value ignored) |
 | **vLLM** | `he config init` → select "local vLLM" |
 | **Mixed** (LLM=Bailian, Embedder=vLLM) | `he config llm -p bailian -k sk-xxx` + `he config embedder -p vllm -u http://localhost:8001/v1 -k dummy` |
 
@@ -191,6 +210,7 @@ print(f"Nodes: {len(graph.nodes)}, Edges: {len(graph.edges)}")
 | `provider` | `"bailian"` | Uses preset defaults for LLM + embedder |
 | `provider:model` | `"bailian:qwen3.6-plus"` | Overrides LLM model, keeps preset embedder |
 | `provider:model@url` | `"vllm:Qwen3.5-9B@localhost:8000/v1"` | Full manual specification |
+| `provider:model` with a tag | `"ollama:qwen3:8b"` | Only the first colon splits; the tag is kept |
 
 ---
 

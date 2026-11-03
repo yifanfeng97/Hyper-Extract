@@ -178,6 +178,31 @@ class TestCreateLLM:
         llm = create_llm("runcrate")
         assert llm.openai_api_key.get_secret_value() == "rc-from-env"
 
+    def test_create_llm_ollama(self):
+        """Create LLM with ollama preset (local OpenAI-compatible endpoint)."""
+        llm = create_llm("ollama", api_key="ollama")
+        assert llm.model_name == "gpt-oss:20b"
+        assert llm.openai_api_base == "http://localhost:11434/v1"
+
+    def test_create_llm_ollama_tagged_model_override(self):
+        """Only the first colon splits, so an Ollama model tag survives."""
+        llm = create_llm("ollama:qwen3:8b", api_key="ollama")
+        assert llm.model_name == "qwen3:8b"
+        assert llm.openai_api_base == "http://localhost:11434/v1"
+
+    def test_create_llm_ollama_tagged_model_with_url(self):
+        """A tagged model plus @url keeps the tag and the explicit host."""
+        llm = create_llm("ollama:qwen3:8b@http://box.local:11434/v1", api_key="x")
+        assert llm.model_name == "qwen3:8b"
+        assert llm.openai_api_base == "http://box.local:11434/v1"
+
+    def test_create_llm_ollama_env_key(self, monkeypatch):
+        """Ollama key is read from OLLAMA_API_KEY, ahead of OPENAI_API_KEY."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-test")
+        monkeypatch.setenv("OLLAMA_API_KEY", "ollama-from-env")
+        llm = create_llm("ollama")
+        assert llm.openai_api_key.get_secret_value() == "ollama-from-env"
+
     def test_create_llm_orcarouter(self):
         """Create LLM with orcarouter preset (OpenAI-compatible gateway)."""
         llm = create_llm("orcarouter", api_key="sk-test")
@@ -278,6 +303,12 @@ class TestCreateEmbedder:
         )
         assert isinstance(emb, CompatibleEmbeddings)
         assert emb._model == "bge-m3"
+
+    def test_create_embedder_ollama(self):
+        """Ollama embedder uses CompatibleEmbeddings on the local endpoint."""
+        emb = create_embedder("ollama", api_key="ollama")
+        assert isinstance(emb, CompatibleEmbeddings)
+        assert emb._model == "embeddinggemma"
 
     def test_create_embedder_orcarouter(self):
         """OrcaRouter embedder uses CompatibleEmbeddings (custom base_url)."""
@@ -670,6 +701,14 @@ class TestProviderPresets:
         assert preset["base_url"] == "https://api.runcrate.ai/v1"
         assert preset["default_llm"] == "deepseek-ai/DeepSeek-V4.1-Flash"
         assert preset["default_embedder"] == "BAAI/bge-m3"
+
+    def test_ollama_provider(self):
+        """Ollama has its own preset with the embedder on the same endpoint."""
+        assert "ollama" in PROVIDER_PRESETS
+        preset = PROVIDER_PRESETS["ollama"]
+        assert preset["base_url"] == "http://localhost:11434/v1"
+        assert preset["default_llm"] == "gpt-oss:20b"
+        assert preset["default_embedder"] == "embeddinggemma"
 
     def test_orcarouter_provider(self):
         """OrcaRouter has its own preset (OpenAI-compatible, named models)."""

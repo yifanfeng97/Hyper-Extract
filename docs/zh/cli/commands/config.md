@@ -32,6 +32,7 @@ he config [COMMAND] [OPTIONS]
 - **OrcaRouter preset**: `orcarouter/auto`（OpenAI 兼容网关；密钥 `ORCAROUTER_API_KEY`）
 - **Atlas Cloud preset**: `deepseek-ai/deepseek-v4-flash`（仅 LLM —— 无嵌入预设，请搭配 OpenAI 兼容嵌入器；密钥 `ATLASCLOUD_API_KEY`）
 - **Runcrate preset**: `deepseek-ai/DeepSeek-V4.1-Flash` + `BAAI/bge-m3`（LLM 与嵌入器共用一个密钥 `RUNCRATE_API_KEY`）
+- **Ollama preset**: `gpt-oss:20b` + `embeddinggemma`，地址 `http://localhost:11434/v1`（本地运行；密钥必填但会被忽略，可传任意值，如 `-k ollama`）
 - **Google Gemini preset**: `gemini-3.8-flash`（仅 LLM —— 无嵌入预设，请搭配 OpenAI 兼容嵌入器；别名 `gemini`）
 
 ```bash
@@ -42,7 +43,7 @@ he config init [OPTIONS]
 
 | 选项 | 简写 | 描述 |
 |--------|-------|-------------|
-| `--provider` | `-p` | 提供商 preset (`openai` / `anthropic` / `google` / `orcarouter` / `atlascloud` / `runcrate` / `deepseek` / `bailian` / `vllm`) |
+| `--provider` | `-p` | 提供商 preset (`openai` / `anthropic` / `google` / `orcarouter` / `atlascloud` / `runcrate` / `deepseek` / `bailian` / `ollama` / `vllm`) |
 | `--api-key` | `-k` | LLM 和嵌入模型的 API 密钥 |
 | `--base-url` | `-u` | 自定义 API 基础 URL（可选） |
 
@@ -74,6 +75,9 @@ he config embedder -p openai -k sk-your-openai-key
 
 # Runcrate（LLM 与嵌入器共用一个密钥）
 he config init -p runcrate -k your-runcrate-key
+
+# Ollama（本地运行；LLM 与嵌入器共用一个端点，密钥值会被忽略）
+he config init -p ollama -k ollama
 
 # Google Gemini（仅 LLM —— 请搭配 OpenAI 兼容嵌入器）
 he config llm -p google -k your-google-api-key
@@ -132,7 +136,7 @@ he config llm [OPTIONS]
 
 | 选项 | 简写 | 描述 |
 |--------|-------|-------------|
-| `--provider` | `-p` | 提供商 preset（如 `openai`、`anthropic`、`google`、`orcarouter`、`atlascloud`、`runcrate`、`deepseek`、`bailian`、`vllm`） |
+| `--provider` | `-p` | 提供商 preset（如 `openai`、`anthropic`、`google`、`orcarouter`、`atlascloud`、`runcrate`、`deepseek`、`bailian`、`ollama`、`vllm`） |
 | `--api-key` | `-k` | LLM API 密钥 |
 | `--model` | `-m` | LLM 模型名称 |
 | `--base-url` | `-u` | 自定义 API 基础 URL |
@@ -175,7 +179,7 @@ he config embedder [OPTIONS]
 
 | 选项 | 简写 | 描述 |
 |--------|-------|-------------|
-| `--provider` | `-p` | 提供商 preset（如 `openai`、`anthropic`、`google`、`orcarouter`、`atlascloud`、`runcrate`、`deepseek`、`bailian`、`vllm`） |
+| `--provider` | `-p` | 提供商 preset（如 `openai`、`anthropic`、`google`、`orcarouter`、`atlascloud`、`runcrate`、`deepseek`、`bailian`、`ollama`、`vllm`） |
 | `--api-key` | `-k` | 嵌入模型 API 密钥 |
 | `--model` | `-m` | 嵌入模型名称 |
 | `--base-url` | `-u` | 自定义 API 基础 URL |

@@ -569,3 +569,43 @@ def test_native_providers_do_not_borrow_openai_key(tmp_path, monkeypatch):
     mgr.set_llm(provider="anthropic", model="claude-opus-4-8")
 
     assert ConfigManager(cfg_path).get_llm_config().api_key == ""
+
+def test_get_llm_and_embedder_config_read_ollama_preset(tmp_path, monkeypatch):
+    """Ollama resolves OLLAMA_API_KEY and the local base_url for both halves."""
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-must-not-win")
+    monkeypatch.setenv("OLLAMA_API_KEY", "ollama-from-env")
+
+    cm = ConfigManager(tmp_path / "config.toml")
+    cm.set_llm(provider="ollama", model="gpt-oss:20b", api_key="")
+    cm.set_embedder(provider="ollama", model="embeddinggemma", api_key="")
+
+    llm_cfg = cm.get_llm_config()
+    assert llm_cfg.api_key == "ollama-from-env"
+    assert llm_cfg.base_url == "http://localhost:11434/v1"
+    emb_cfg = cm.get_embedder_config()
+    assert emb_cfg.api_key == "ollama-from-env"
+    assert emb_cfg.base_url == "http://localhost:11434/v1"
+
+
+def test_validate_accepts_local_provider_without_api_key(tmp_path, monkeypatch):
+    """Ollama ignores the key value, so an unset key must not block the CLI."""
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("OLLAMA_API_KEY", raising=False)
+
+    cm = ConfigManager(tmp_path / "config.toml")
+    cm.set_llm(provider="ollama", model="gpt-oss:20b", api_key="")
+    cm.set_embedder(provider="ollama", model="embeddinggemma", api_key="")
+
+    ok, message = cm.validate()
+    assert ok, message
+
+
+def test_interactive_init_lists_ollama():
+    """he config init provider list includes local Ollama."""
+    import inspect
+
+    from hyperextract.cli.commands.config import init
+
+    assert '"ollama"' in inspect.getsource(init)

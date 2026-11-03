@@ -421,6 +421,10 @@ def init(
     console.print("[bold blue]Hyper-Extract Configuration Setup[/bold blue]")
     console.print()
 
+    # PROVIDER_PRESETS comes from the module-level import; a local import
+    # here would shadow it and break earlier uses inside init().
+    from hyperextract.utils.client import LOCAL_PROVIDERS
+
     console.print("[bold]Step 1: Choose Provider[/bold]")
     providers = [
         ("openai", "OpenAI", "https://api.openai.com/v1"),
@@ -431,6 +435,7 @@ def init(
         ("google", "Google Gemini", "native SDK"),
         ("atlascloud", "Atlas Cloud", "https://api.atlascloud.ai/v1"),
         ("runcrate", "Runcrate", "https://api.runcrate.ai/v1"),
+        ("ollama", "本地 Ollama", "http://localhost:11434/v1"),
         ("vllm", "本地 vLLM", "自定义地址"),
         ("custom", "其他 OpenAI 兼容接口", "自定义地址"),
     ]
@@ -481,9 +486,9 @@ def init(
     while not llm_api_key:
         llm_api_key = console.input("  API Key: ").strip()
         if not llm_api_key:
-            if selected == "vllm":
+            if selected in LOCAL_PROVIDERS:
                 llm_api_key = "dummy"
-                console.print("  [dim]Using 'dummy' for vLLM[/dim]")
+                console.print(f"  [dim]Using 'dummy' for {selected}[/dim]")
                 break
             console.print(
                 "  [red]API Key is required. Please enter your API key.[/red]"
@@ -546,9 +551,9 @@ def init(
     while not emb_api_key:
         emb_api_key = console.input("  API Key: ").strip()
         if not emb_api_key:
-            if selected == "vllm":
+            if selected in LOCAL_PROVIDERS:
                 emb_api_key = "dummy"
-                console.print("  [dim]Using 'dummy' for vLLM[/dim]")
+                console.print(f"  [dim]Using 'dummy' for {selected}[/dim]")
                 break
             console.print(
                 "  [red]API Key is required. Please enter your API key.[/red]"

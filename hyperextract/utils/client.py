@@ -95,6 +95,19 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
         "default_llm": "deepseek-ai/DeepSeek-V4.1-Flash",
         "default_embedder": "BAAI/bge-m3",
     },
+    # Ollama. Local runtime that exposes an OpenAI-compatible subset on
+    # http://localhost:11434/v1, /v1/embeddings included, so a single endpoint
+    # covers both the LLM and the embedder. The local server wants an API key
+    # field but ignores its value; OLLAMA_API_KEY is read for Ollama Cloud.
+    # Served models are whatever `ollama pull` has fetched, so the defaults are
+    # the ids from Ollama's own OpenAI-compatibility and embeddings examples
+    # (docs.ollama.com, 2026-11-01). Ollama model tags carry a colon, which the
+    # "provider:model@url" shorthand keeps whole ("ollama:qwen3:8b").
+    "ollama": {
+        "base_url": "http://localhost:11434/v1",
+        "default_llm": "gpt-oss:20b",
+        "default_embedder": "embeddinggemma",
+    },
     # Anthropic (Claude). Uses the native ChatAnthropic client, so base_url is
     # left empty (the SDK targets api.anthropic.com by default). Anthropic has
     # no embeddings API, hence default_embedder is None — pair it with an
@@ -133,6 +146,10 @@ ANTHROPIC_PROVIDERS = ("anthropic", "claude")
 # Providers handled by the native langchain-google-genai client.
 GOOGLE_PROVIDERS = ("google", "gemini")
 
+# Local runtimes. They serve an OpenAI-compatible endpoint on the user's own
+# machine and accept any API key value, so a configured key is not required.
+LOCAL_PROVIDERS = ("vllm", "ollama")
+
 # Native (non-OpenAI-compatible) LLM providers — do not fall back to
 # OPENAI_API_KEY when their own env vars are unset.
 _NATIVE_LLM_PROVIDERS = ANTHROPIC_PROVIDERS + GOOGLE_PROVIDERS
@@ -149,6 +166,7 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "api-route": ("API_ROUTE_API_KEY",),
     "atlascloud": ("ATLASCLOUD_API_KEY",),
     "runcrate": ("RUNCRATE_API_KEY",),
+    "ollama": ("OLLAMA_API_KEY",),
 }
 
 
