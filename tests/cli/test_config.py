@@ -412,3 +412,37 @@ def test_get_llm_and_embedder_config_read_runcrate_env_key(tmp_path, monkeypatch
     assert emb_cfg.api_key == "rc-from-env"
     assert emb_cfg.base_url == "https://api.runcrate.ai/v1"
 
+
+
+def test_openai_key_resolves_compatible_providers(tmp_path, monkeypatch):
+    """OPENAI_API_KEY is the documented fallback for OpenAI-compatible
+    providers; the CLI resolver must honor it like utils.client does."""
+    cfg_path = _isolate_default_config(tmp_path, monkeypatch)
+    for var in ("DEEPSEEK_API_KEY", "ATLASCLOUD_API_KEY"):
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-env-openai")
+
+    mgr = ConfigManager(cfg_path)
+    mgr.set_llm(
+        provider="deepseek",
+        model="deepseek-v4-flash",
+        base_url="https://api.deepseek.com",
+    )
+    mgr.set_embedder(provider="openai", model="text-embedding-3-small")
+
+    reloaded = ConfigManager(cfg_path)
+    assert reloaded.get_llm_config().api_key == "sk-env-openai"
+    assert reloaded.validate()[0] is True
+
+
+def test_native_providers_do_not_borrow_openai_key(tmp_path, monkeypatch):
+    """anthropic/google use their own SDKs — an OpenAI key must not satisfy them."""
+    cfg_path = _isolate_default_config(tmp_path, monkeypatch)
+    for var in ("ANTHROPIC_API_KEY", "CLAUDE_API_KEY"):
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-env-openai")
+
+    mgr = ConfigManager(cfg_path)
+    mgr.set_llm(provider="anthropic", model="claude-opus-4-8")
+
+    assert ConfigManager(cfg_path).get_llm_config().api_key == ""
