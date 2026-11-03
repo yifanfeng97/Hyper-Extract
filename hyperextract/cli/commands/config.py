@@ -24,6 +24,8 @@ _CANONICAL_PROVIDERS = tuple(
     name for name in PROVIDER_PRESETS if name not in _PROVIDER_ALIASES
 )
 _PROVIDER_HELP = ", ".join(_CANONICAL_PROVIDERS)
+
+
 def _provider_lacks_embeddings(provider: str | None) -> bool:
     """True when a hosted preset is known to have no embeddings API.
 

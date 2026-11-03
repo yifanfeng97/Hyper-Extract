@@ -35,7 +35,9 @@ def test_save_creates_custom_parent_dir(tmp_path):
     assert reloaded.llm.model == "gpt-4o-mini"
 
 
-def test_api_route_config_round_trip_uses_provider_endpoint_and_key(tmp_path, monkeypatch):
+def test_api_route_config_round_trip_uses_provider_endpoint_and_key(
+    tmp_path, monkeypatch
+):
     monkeypatch.setenv("API_ROUTE_API_KEY", "route-test")
     monkeypatch.setenv("OPENAI_API_KEY", "openai-test")
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
@@ -364,6 +366,8 @@ def test_quick_init_does_not_warn_when_preset_has_default_llm(tmp_path, monkeypa
 
     assert result.exit_code == 0, result.output
     assert "no default LLM" not in result.output
+
+
 def test_atlascloud_is_a_library_preset_with_its_own_key_env():
     """The CLI reads Atlas Cloud from the library tables, not a copy."""
     from hyperextract.cli import config as cli_config
@@ -413,7 +417,6 @@ def test_get_llm_and_embedder_config_read_runcrate_env_key(tmp_path, monkeypatch
     assert emb_cfg.base_url == "https://api.runcrate.ai/v1"
 
 
-
 def test_provider_help_lists_every_registered_preset():
     """The --provider help text is derived, so a new preset cannot drift out."""
     from hyperextract.cli.commands.config import _PROVIDER_HELP
@@ -434,7 +437,9 @@ def test_interactive_init_offers_every_registered_preset(tmp_path, monkeypatch):
     _isolate_default_config(tmp_path, monkeypatch)
     printed: list[str] = []
     monkeypatch.setattr(
-        config_cmd.console, "print", lambda *a, **k: printed.append(str(a[0]) if a else "")
+        config_cmd.console,
+        "print",
+        lambda *a, **k: printed.append(str(a[0]) if a else ""),
     )
     # Abort right after the provider menu is rendered.
     monkeypatch.setattr(
@@ -481,6 +486,8 @@ def test_interactive_init_rejects_zero_choice(tmp_path, monkeypatch):
     assert step2, printed
     assert "Provider: custom" not in step2[0]
     assert "Provider: openai" in step2[0]
+
+
 @pytest.mark.parametrize("provider", ["atlascloud", "deepseek", "anthropic"])
 def test_config_embedder_warns_for_providers_without_embeddings(
     tmp_path, monkeypatch, provider
@@ -528,7 +535,8 @@ def test_config_embedder_stays_quiet_for_capable_providers(
 
     assert result.exit_code == 0, result.output
     assert "no embeddings API" not in result.output
-=======
+
+
 def test_openai_key_resolves_compatible_providers(tmp_path, monkeypatch):
     """OPENAI_API_KEY is the documented fallback for OpenAI-compatible
     providers; the CLI resolver must honor it like utils.client does."""
