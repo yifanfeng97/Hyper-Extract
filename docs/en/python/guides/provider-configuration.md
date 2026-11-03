@@ -1,11 +1,6 @@
 # Provider Configuration Guide
 
-<<<<<<< HEAD
-Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, Cerebras, Mistral AI, Moonshot (Kimi), Cheaper Inference, or local Ollama / vLLM deployments.
-Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, Cerebras, Mistral AI, Moonshot (Kimi), Cheaper Inference, or local vLLM deployments.
-=======
-Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, CloudGPU, Cheaper Inference, or local vLLM deployments.
->>>>>>> pr-193-src
+Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, Cerebras, Mistral AI, Moonshot (Kimi), Cheaper Inference, CloudGPU, or local vLLM deployments.
 
 ---
 
@@ -266,14 +261,11 @@ print(f"Nodes: {len(graph.nodes)}, Edges: {len(graph.edges)}")
 | **Cheaper Inference** | `he config llm -p cheaperinference -m gpt-5.4-mini -k ci_live_xxx` + `he config embedder -p openai -k sk-xxx` |
 | **Atlas Cloud** | `he config llm -p atlascloud -k xxx` + `he config embedder -p openai -k sk-xxx` |
 | **Runcrate** | `he config init -p runcrate -k rc_live_xxx` |
-<<<<<<< HEAD
 | **Ollama** | `he config init -p ollama -k ollama` (key value ignored) |
 | **Cerebras** | `he config llm -p cerebras -k csk-xxx` + `he config embedder -p openai -k sk-xxx` |
 | **Mistral AI** | `he config init -p mistral -k your-mistral-key` |
 | **Moonshot (Kimi)** | `he config llm -p moonshot -k sk-moonshot-xxx` + `he config embedder -p openai -k sk-xxx` |
-=======
 | **CloudGPU** | `he config init -p cloudgpu -k your-cloudgpu-key` + `he config embedder -p openai -k sk-xxx` |
->>>>>>> pr-193-src
 | **vLLM** | `he config init` → select "local vLLM" |
 | **Mixed** (LLM=Bailian, Embedder=vLLM) | `he config llm -p bailian -k sk-xxx` + `he config embedder -p vllm -u http://localhost:8001/v1 -k dummy` |
 
