@@ -1,6 +1,7 @@
 # Provider System
 
 Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cheaper Inference**, and local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
+Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cheaper Inference**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, and **local vLLM**. All use the same `create_client()` interface — only the first line changes.
 
 ---
 
@@ -20,6 +21,9 @@ Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**,
 | **Atlas Cloud** | `deepseek-ai/deepseek-v4-flash`, `deepseek-ai/deepseek-v4-pro`, `moonshotai/kimi-k3`, `qwen/qwen3.5-plus`, `openai/gpt-5.5`, `anthropic/claude-sonnet-4.6` | ✅ | ✅ | OpenAI-compatible gateway serving DeepSeek, Z.ai, Moonshot, Qwen, MiniMax, OpenAI, Anthropic and Google models under vendor-prefixed ids. LLM only — no embeddings API. `glm-5.x` models reject the forced `tool_choice` structured extraction uses; pick another model. Keys: `ATLASCLOUD_API_KEY` |
 | **Runcrate** | `deepseek-ai/DeepSeek-V4.1-Flash`, `openai/gpt-oss-120b` | ✅ | ✅ | OpenAI-compatible API for open models under vendor-prefixed ids. Also serves embeddings (`BAAI/bge-m3`, 1024 dims), so one key covers the LLM and the embedder. Open models are free with your GitHub account. `zai-org/GLM-5.x` returned an empty graph in testing; pick another model. Keys: `RUNCRATE_API_KEY` |
 | **Ollama** (local) | `gpt-oss:20b`, `qwen3:8b`, and anything else `ollama pull` has fetched | ✅ | ✅ | Local runtime serving an OpenAI-compatible subset on `http://localhost:11434/v1`, `/v1/embeddings` included, so one endpoint covers the LLM and the embedder (`embeddinggemma`). The key is required by the API shape but its value is ignored. Keys: `OLLAMA_API_KEY` (only needed for Ollama Cloud) |
+| **Cerebras** | `qwen-3.8-27b`, `gpt-oss-120b` (shared); `kimi-k2.7-code`, `gemma-4-31b` (dedicated) | ✅ | ✅ | OpenAI-compatible inference endpoint; `tool_choice` accepts none/auto/required or a named function on every served model. LLM only — no embeddings API (pair with an OpenAI-compatible embedder). Keys: `CEREBRAS_API_KEY` |
+| **Mistral AI** | `mistral-large-latest`, `mistral-small-latest`, `mistral-large-4`, `ministral-3-8b` | ✅ | ✅ | OpenAI-shaped `/v1/chat/completions`; `tool_choice` accepts auto/none/any/required or a named function. Also serves `/v1/embeddings` (`mistral-embed`, 1024 dims), so one key covers the LLM and the embedder. `*-latest` ids are rolling aliases — pin a dated id to avoid drift. Keys: `MISTRAL_API_KEY` |
+| **Moonshot (Kimi)** | `kimi-k3.1-pro`, `kimi-k3.1-pro-highspeed`, `kimi-k3`, `kimi-k2.7-code` | ✅ | ✅ | OpenAI-compatible chat endpoint; `tool_choice` accepts a named function. Bare model ids, no vendor prefix. LLM only — no embeddings API (pair with an OpenAI-compatible embedder). Keys: `MOONSHOT_API_KEY` |
 | **Alibaba Bailian** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | Works out of the box |
 | **Alibaba Bailian** | qwen-max / deepseek-v3 | ❌ | ❌ | Only `json_object`; not compatible with function-calling structured output |
 
@@ -109,6 +113,27 @@ llm, emb = create_client(
     llm="ollama",  # default model: gpt-oss:20b
     embedder="ollama",  # default embedder: embeddinggemma
     api_key="ollama",
+# Cerebras — OpenAI-compatible inference endpoint, bare model ids.
+# No embeddings API, so pair it with an OpenAI-compatible embedder.
+# Key: CEREBRAS_API_KEY. Override model with "cerebras:gpt-oss-120b".
+llm, emb = create_client(
+    llm="cerebras",  # default model: qwen-3.8-27b
+    embedder="openai:text-embedding-3-small",
+)
+
+# Mistral AI — OpenAI-shaped chat and embeddings on one key.
+# Key: MISTRAL_API_KEY. Override model with "mistral:mistral-small-latest".
+llm, emb = create_client(
+    llm="mistral",  # default model: mistral-large-latest
+    embedder="mistral",  # default embedder: mistral-embed
+)
+
+# Moonshot / Kimi — OpenAI-compatible chat endpoint, bare model ids.
+# No embeddings API, so pair it with an OpenAI-compatible embedder.
+# Key: MOONSHOT_API_KEY. Override model with "moonshot:kimi-k3".
+llm, emb = create_client(
+    llm="moonshot",  # default model: kimi-k3.1-pro
+    embedder="openai:text-embedding-3-small",
 )
 
 # Cheaper Inference — OpenAI-compatible gateway, one key for models from
