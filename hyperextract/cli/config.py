@@ -11,7 +11,11 @@ from typing import Any
 
 import tomli_w
 
-from hyperextract.utils.client import PROVIDER_API_KEY_ENV, PROVIDER_PRESETS
+from hyperextract.utils.client import (
+    _NATIVE_LLM_PROVIDERS,
+    PROVIDER_API_KEY_ENV,
+    PROVIDER_PRESETS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +32,14 @@ def _env_api_key(provider: str) -> str:
 
     Falls back to OPENAI_API_KEY for OpenAI-compatible providers.
     """
-    for var in PROVIDER_API_KEY_ENV.get(provider, ("OPENAI_API_KEY",)):
+    for var in PROVIDER_API_KEY_ENV.get(provider, ()):
         value = os.environ.get(var, "")
         if value:
             return value
+    # Native-SDK providers must not borrow an OpenAI key; OpenAI-compatible
+    # ones may (same rule as utils.client._env_api_key).
+    if provider not in _NATIVE_LLM_PROVIDERS:
+        return os.environ.get("OPENAI_API_KEY", "")
     return ""
 
 
