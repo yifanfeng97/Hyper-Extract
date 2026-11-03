@@ -1,7 +1,11 @@
 # Provider Configuration Guide
 
+<<<<<<< HEAD
 Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, Cerebras, Mistral AI, Moonshot (Kimi), Cheaper Inference, or local Ollama / vLLM deployments.
 Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, Cerebras, Mistral AI, Moonshot (Kimi), Cheaper Inference, or local vLLM deployments.
+=======
+Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, CloudGPU, Cheaper Inference, or local vLLM deployments.
+>>>>>>> pr-193-src
 
 ---
 
@@ -94,6 +98,32 @@ llm, emb = create_client(
     embedder="runcrate",  # default embedder: BAAI/bge-m3
 )
 # Or override the model: create_client(llm="runcrate:openai/gpt-oss-120b", ...)
+```
+
+### CloudGPU
+
+Set `CLOUDGPU_API_KEY` to a key from [CloudGPU](https://cloudgpu.app/?utm_source=hyper-extract&utm_medium=integration&utm_campaign=202611_seg04_codingagent_api).
+The preset uses `https://cloudgpu.app/v1` and defaults to `deepseek-v4.1-flash`.
+Model ids have no vendor prefix. Configure an embedding provider separately:
+
+```python
+from hyperextract import create_client
+
+# Key: CLOUDGPU_API_KEY. CloudGPU does not serve embeddings.
+llm, emb = create_client(
+    llm="cloudgpu",  # override with "cloudgpu:<model-id>"
+    embedder="openai",
+)
+```
+
+Use a model id from the [API docs](https://cloudgpu.app/api/docs) or
+the authenticated `GET https://cloudgpu.app/v1/models` response
+(`kimi-k2.6`, `glm-5.2`, `minimax-m3`, and others).
+For CLI configuration:
+
+```bash
+he config init -p cloudgpu -k your-cloudgpu-key
+he config embedder -p openai
 ```
 
 ### API Route
@@ -236,10 +266,14 @@ print(f"Nodes: {len(graph.nodes)}, Edges: {len(graph.edges)}")
 | **Cheaper Inference** | `he config llm -p cheaperinference -m gpt-5.4-mini -k ci_live_xxx` + `he config embedder -p openai -k sk-xxx` |
 | **Atlas Cloud** | `he config llm -p atlascloud -k xxx` + `he config embedder -p openai -k sk-xxx` |
 | **Runcrate** | `he config init -p runcrate -k rc_live_xxx` |
+<<<<<<< HEAD
 | **Ollama** | `he config init -p ollama -k ollama` (key value ignored) |
 | **Cerebras** | `he config llm -p cerebras -k csk-xxx` + `he config embedder -p openai -k sk-xxx` |
 | **Mistral AI** | `he config init -p mistral -k your-mistral-key` |
 | **Moonshot (Kimi)** | `he config llm -p moonshot -k sk-moonshot-xxx` + `he config embedder -p openai -k sk-xxx` |
+=======
+| **CloudGPU** | `he config init -p cloudgpu -k your-cloudgpu-key` + `he config embedder -p openai -k sk-xxx` |
+>>>>>>> pr-193-src
 | **vLLM** | `he config init` → select "local vLLM" |
 | **Mixed** (LLM=Bailian, Embedder=vLLM) | `he config llm -p bailian -k sk-xxx` + `he config embedder -p vllm -u http://localhost:8001/v1 -k dummy` |
 

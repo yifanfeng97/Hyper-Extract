@@ -141,6 +141,14 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
         "default_llm": "gpt-oss:20b",
         "default_embedder": "embeddinggemma",
     },
+    # CloudGPU. OpenAI-compatible LLM API. Model ids have no vendor prefix
+    # (default: "deepseek-v4.1-flash"). CloudGPU does not serve embeddings —
+    # configure an embedding provider separately.
+    "cloudgpu": {
+        "base_url": "https://cloudgpu.app/v1",
+        "default_llm": "deepseek-v4.1-flash",
+        "default_embedder": None,
+    },
     # Anthropic (Claude). Uses the native ChatAnthropic client, so base_url is
     # left empty (the SDK targets api.anthropic.com by default). Anthropic has
     # no embeddings API, hence default_embedder is None — pair it with an
@@ -203,6 +211,7 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "atlascloud": ("ATLASCLOUD_API_KEY",),
     "runcrate": ("RUNCRATE_API_KEY",),
     "ollama": ("OLLAMA_API_KEY",),
+    "cloudgpu": ("CLOUDGPU_API_KEY",),
 }
 
 

@@ -621,6 +621,31 @@ def test_get_llm_config_reads_cerebras_env_key(tmp_path, monkeypatch):
 
 def test_interactive_init_lists_cerebras():
     """he config init provider list includes Cerebras."""
+def test_cloudgpu_is_a_library_preset_with_its_own_key_env():
+    """The CLI reads CloudGPU from the library tables, not a copy."""
+    from hyperextract.cli import config as cli_config
+
+    assert "cloudgpu" in cli_config.PROVIDER_PRESETS
+    assert cli_config.PROVIDER_API_KEY_ENV["cloudgpu"] == ("CLOUDGPU_API_KEY",)
+
+
+def test_get_llm_config_reads_cloudgpu_env_key(tmp_path, monkeypatch):
+    """Empty toml api_key must resolve CLOUDGPU_API_KEY, ahead of OPENAI_API_KEY."""
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-must-not-win")
+    monkeypatch.setenv("CLOUDGPU_API_KEY", "cg-from-env")
+
+    cm = ConfigManager(tmp_path / "config.toml")
+    cm.set_llm(provider="cloudgpu", model="deepseek-v4.1-flash", api_key="")
+    cfg = cm.get_llm_config()
+
+    assert cfg.api_key == "cg-from-env"
+    assert cfg.base_url == "https://cloudgpu.app/v1"
+    assert cfg.model == "deepseek-v4.1-flash"
+
+
+def test_interactive_init_lists_cloudgpu():
+    """he config init provider list includes CloudGPU."""
     import inspect
 
     from hyperextract.cli.commands.config import init
@@ -677,3 +702,4 @@ def test_interactive_init_lists_moonshot():
     from hyperextract.cli.commands.config import init
 
     assert '"moonshot"' in inspect.getsource(init)
+    assert '"cloudgpu"' in inspect.getsource(init)
