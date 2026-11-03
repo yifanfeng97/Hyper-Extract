@@ -24,6 +24,21 @@ _CANONICAL_PROVIDERS = tuple(
     name for name in PROVIDER_PRESETS if name not in _PROVIDER_ALIASES
 )
 _PROVIDER_HELP = ", ".join(_CANONICAL_PROVIDERS)
+def _provider_lacks_embeddings(provider: str | None) -> bool:
+    """True when a hosted preset is known to have no embeddings API.
+
+    Self-hosted presets (``base_url`` is None, e.g. vllm) are exempt: what the
+    endpoint serves depends on what the user runs behind it. Unknown providers
+    are exempt too.
+    """
+    from hyperextract.utils.client import PROVIDER_PRESETS
+
+    if not provider or provider not in PROVIDER_PRESETS:
+        return False
+    preset = PROVIDER_PRESETS[provider]
+    if preset.get("base_url") is None:
+        return False
+    return _preset_embedder_model(preset) is None
 
 
 def _preset_embedder_model(preset: dict) -> str | None:
@@ -281,6 +296,13 @@ def embedder(
         config.unset_embedder()
         console.print("[green]Embedder configuration cleared[/green]")
         return
+
+    if _provider_lacks_embeddings(provider):
+        console.print(
+            f"[yellow]Warning: Provider '{provider}' has no embeddings API. "
+            "Point the embedder at an OpenAI-compatible provider instead, e.g. "
+            "he config embedder -p openai -k YOUR_KEY.[/yellow]"
+        )
 
     config.set_embedder(
         provider=provider,

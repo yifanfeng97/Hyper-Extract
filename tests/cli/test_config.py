@@ -481,3 +481,50 @@ def test_interactive_init_rejects_zero_choice(tmp_path, monkeypatch):
     assert step2, printed
     assert "Provider: custom" not in step2[0]
     assert "Provider: openai" in step2[0]
+@pytest.mark.parametrize("provider", ["atlascloud", "deepseek", "anthropic"])
+def test_config_embedder_warns_for_providers_without_embeddings(
+    tmp_path, monkeypatch, provider
+):
+    """Presets documented as LLM-only must not accept an embedder silently."""
+    from typer.testing import CliRunner
+
+    from hyperextract.cli.cli import app
+
+    _isolate_default_config(tmp_path, monkeypatch)
+    result = CliRunner().invoke(
+        app, ["config", "embedder", "-p", provider, "-k", _FAKE_API_KEY, "-m", "x"]
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "no embeddings API" in result.output
+    assert "he config embedder -p openai" in result.output
+
+
+@pytest.mark.parametrize("provider", ["openai", "runcrate", "vllm"])
+def test_config_embedder_stays_quiet_for_capable_providers(
+    tmp_path, monkeypatch, provider
+):
+    """openai/runcrate serve embeddings; vllm depends on what the user runs."""
+    from typer.testing import CliRunner
+
+    from hyperextract.cli.cli import app
+
+    _isolate_default_config(tmp_path, monkeypatch)
+    result = CliRunner().invoke(
+        app,
+        [
+            "config",
+            "embedder",
+            "-p",
+            provider,
+            "-k",
+            _FAKE_API_KEY,
+            "-m",
+            "x",
+            "-u",
+            "http://localhost:8001/v1",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "no embeddings API" not in result.output
