@@ -136,6 +136,9 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
     # the ids from Ollama's own OpenAI-compatibility and embeddings examples
     # (docs.ollama.com, 2026-11-01). Ollama model tags carry a colon, which the
     # "provider:model@url" shorthand keeps whole ("ollama:qwen3:8b").
+    # llm.buzz. OpenAI-compatible gateway with vendor-prefixed model ids such as
+    # "openai/gpt-5.4-mini" (list: GET https://api.llm.buzz/api/v1/models).
+    # LLM only here, so pair it with an OpenAI-compatible embedder.
     "ollama": {
         "base_url": "http://localhost:11434/v1",
         "default_llm": "gpt-oss:20b",
@@ -147,6 +150,13 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
     "cloudgpu": {
         "base_url": "https://cloudgpu.app/v1",
         "default_llm": "deepseek-v4.1-flash",
+    },
+    # llm.buzz. OpenAI-compatible gateway with vendor-prefixed model ids such as
+    # "openai/gpt-5.4-mini" (list: GET https://api.llm.buzz/api/v1/models).
+    # LLM only here, so pair it with an OpenAI-compatible embedder.
+    "llmbuzz": {
+        "base_url": "https://api.llm.buzz/api/v1",
+        "default_llm": "openai/gpt-5.4-mini",
         "default_embedder": None,
     },
     # Anthropic (Claude). Uses the native ChatAnthropic client, so base_url is
@@ -212,6 +222,7 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "runcrate": ("RUNCRATE_API_KEY",),
     "ollama": ("OLLAMA_API_KEY",),
     "cloudgpu": ("CLOUDGPU_API_KEY",),
+    "llmbuzz": ("LLM_BUZZ_API_KEY",),
 }
 
 

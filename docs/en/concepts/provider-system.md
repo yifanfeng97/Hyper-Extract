@@ -1,8 +1,6 @@
 # Provider System
 
-Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cheaper Inference**, and local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
-Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cheaper Inference**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, and **local vLLM**. All use the same `create_client()` interface — only the first line changes.
-Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **CloudGPU**, **Cheaper Inference**, and **local vLLM**. All use the same `create_client()` interface — only the first line changes.
+Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, **Cheaper Inference**, **CloudGPU**, **llm.buzz**, and local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
 
 ---
 
@@ -26,6 +24,7 @@ Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**,
 | **Mistral AI** | `mistral-large-latest`, `mistral-small-latest`, `mistral-large-4`, `ministral-3-8b` | ✅ | ✅ | OpenAI-shaped `/v1/chat/completions`; `tool_choice` accepts auto/none/any/required or a named function. Also serves `/v1/embeddings` (`mistral-embed`, 1024 dims), so one key covers the LLM and the embedder. `*-latest` ids are rolling aliases — pin a dated id to avoid drift. Keys: `MISTRAL_API_KEY` |
 | **Moonshot (Kimi)** | `kimi-k3.1-pro`, `kimi-k3.1-pro-highspeed`, `kimi-k3`, `kimi-k2.7-code` | ✅ | ✅ | OpenAI-compatible chat endpoint; `tool_choice` accepts a named function. Bare model ids, no vendor prefix. LLM only — no embeddings API (pair with an OpenAI-compatible embedder). Keys: `MOONSHOT_API_KEY` |
 | **CloudGPU** | `deepseek-v4.1-flash` | ✅ | ✅ | OpenAI-compatible LLM preset. Model ids have no vendor prefix. Configure an embedding provider separately. Key: `CLOUDGPU_API_KEY`. [Setup guide](../python/guides/provider-configuration.md#cloudgpu) |
+| **llm.buzz** | `openai/gpt-5.4-mini` | ✅ | ✅ | OpenAI-compatible gateway with vendor-prefixed model ids (list: `GET https://api.llm.buzz/api/v1/models`). LLM only in this preset (pair with an OpenAI-compatible embedder). Keys: `LLM_BUZZ_API_KEY` |
 | **Alibaba Bailian** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | Works out of the box |
 | **Alibaba Bailian** | qwen-max / deepseek-v3 | ❌ | ❌ | Only `json_object`; not compatible with function-calling structured output |
 

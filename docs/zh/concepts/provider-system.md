@@ -1,8 +1,6 @@
 # Provider 系统
 
-Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**Runcrate**、**本地 Ollama**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
-Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**Runcrate**、**Cerebras**、**Mistral AI**、**Moonshot (Kimi)**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
-Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**Runcrate**、**CloudGPU**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
+Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**Runcrate**、**Cerebras**、**Mistral AI**、**Moonshot (Kimi)**、**Cheaper Inference**、**CloudGPU**、**llm.buzz**、**本地 Ollama**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
 
 ---
 
@@ -25,6 +23,7 @@ Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google G
 | **Mistral AI** | `mistral-large-latest`、`mistral-small-latest`、`mistral-large-4`、`ministral-3-8b` | ✅ | ✅ | `/v1/chat/completions` 为 OpenAI 形状，`tool_choice` 支持 auto/none/any/required 或指定函数。同时提供 `/v1/embeddings`（`mistral-embed`，1024 维），一个密钥即可覆盖 LLM 与嵌入器。`*-latest` 为滚动别名，建议固定带日期的 id。密钥：`MISTRAL_API_KEY` |
 | **Moonshot 月之暗面** | `kimi-k3.1-pro`、`kimi-k3.1-pro-highspeed`、`kimi-k3`、`kimi-k2.7-code` | ✅ | ✅ | OpenAI 兼容聊天接口，`tool_choice` 支持指定函数。模型 id 不带厂商前缀。仅 LLM —— 无嵌入 API（请搭配 OpenAI 兼容嵌入器）。密钥：`MOONSHOT_API_KEY` |
 | **CloudGPU** | `deepseek-v4.1-flash` | ✅ | ✅ | OpenAI 兼容 LLM 预设，模型 id 不带厂商前缀，嵌入模型需单独配置。密钥：`CLOUDGPU_API_KEY`。[配置指南](../python/guides/provider-configuration.md#cloudgpu) |
+| **llm.buzz** | `openai/gpt-5.4-mini` | ✅ | ✅ | OpenAI 兼容网关，模型 id 带厂商前缀（列表：`GET https://api.llm.buzz/api/v1/models`）。此预设仅 LLM（请搭配 OpenAI 兼容嵌入器）。密钥：`LLM_BUZZ_API_KEY` |
 | **阿里云百炼** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | 直接使用，无需修改 |
 | **阿里云百炼** | qwen-max / deepseek-v3 | ❌ | ❌ | 仅支持 `json_object`，不兼容 function calling 结构化输出 |
 
