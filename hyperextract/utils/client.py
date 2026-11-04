@@ -150,6 +150,7 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
     "cloudgpu": {
         "base_url": "https://cloudgpu.app/v1",
         "default_llm": "deepseek-v4.1-flash",
+        "default_embedder": None,
     },
     # llm.buzz. OpenAI-compatible gateway with vendor-prefixed model ids such as
     # "openai/gpt-5.4-mini" (list: GET https://api.llm.buzz/api/v1/models).
