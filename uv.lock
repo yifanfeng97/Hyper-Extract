@@ -977,7 +977,7 @@ wheels = [
 
 [[package]]
 name = "hyperextract"
-version = "0.11.0"
+version = "0.11.2"
 source = { editable = "." }
 dependencies = [
     { name = "faiss-cpu" },

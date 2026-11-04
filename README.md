@@ -354,7 +354,7 @@ identifiers:
 
 ## 📰 What's New
 
-**v0.11.1** — 🔌 Provider presets ship for real (API Route / Runcrate / Atlas Cloud / Cheaper Inference / Ollama / CloudGPU / llm.buzz) — the v0.11.0 tag predates the preset merges; content now matches the notes.
+**v0.11.2** — 🔌 llm.buzz & CloudGPU presets ship (v0.11.1 notes had listed llm.buzz prematurely — now really included) · 📚 provider docs deduplicated & completed.
 
 📰 **[Full release notes](https://yifanfeng97.github.io/Hyper-Extract/latest/news/)** · [All releases](https://github.com/yifanfeng97/hyper-extract/releases)
 

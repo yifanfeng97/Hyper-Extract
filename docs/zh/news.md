@@ -4,6 +4,14 @@
 
 ---
 
+## v0.11.2 — llm.buzz 与 CloudGPU 预设 + Provider 文档清理
+
+- **🔌 llm.buzz 预设上线** — v0.11.1 的说明误将 llm.buzz 列为已包含，本版正式落地（带厂商前缀 id、仅 LLM、`LLM_BUZZ_API_KEY`）。*(#194)*
+- **🔌 CloudGPU 预设补全** — 预设契约缺失的 `default_embedder` 键已补，预设表测试强制覆盖。*(#193 后续)*
+- **📚 Provider 文档清理** — provider-system 与 config 指南中的清单去重并补全（Atlas Cloud / Runcrate / Cerebras / Mistral / Moonshot / CloudGPU / llm.buzz 各出现一次）。
+
+---
+
 ## v0.11.1 — Provider 预设正式发布（0.11.0 打包勘误）
 
 - **🔌 Provider 预设实际包含** — v0.11.0 的 tag 在预设合并落地前打出，Release Notes 超前于内容。v0.11.1 已包含：**API Route**、**Runcrate**、**Atlas Cloud**、**Cheaper Inference**、**Ollama**、**CloudGPU**、**llm.buzz**，以及下方全部修复。
