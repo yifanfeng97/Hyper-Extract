@@ -1,6 +1,6 @@
 # Provider 系统
 
-Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**Runcrate**、**Cerebras**、**Mistral AI**、**Moonshot (Kimi)**、**Cheaper Inference**、**CloudGPU**、**llm.buzz**、**本地 Ollama**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
+Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**Runcrate**、**Cerebras**、**Mistral AI**、**Moonshot (Kimi)**、**Cheaper Inference**、**CloudGPU**、**llm.buzz**、**LLMTR**、**本地 Ollama**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
 
 ---
 
@@ -24,6 +24,7 @@ Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google G
 | **Moonshot 月之暗面** | `kimi-k3.1-pro`、`kimi-k3.1-pro-highspeed`、`kimi-k3`、`kimi-k2.7-code` | ✅ | ✅ | OpenAI 兼容聊天接口，`tool_choice` 支持指定函数。模型 id 不带厂商前缀。仅 LLM —— 无嵌入 API（请搭配 OpenAI 兼容嵌入器）。密钥：`MOONSHOT_API_KEY` |
 | **CloudGPU** | `deepseek-v4.1-flash` | ✅ | ✅ | OpenAI 兼容 LLM 预设，模型 id 不带厂商前缀，嵌入模型需单独配置。密钥：`CLOUDGPU_API_KEY`。[配置指南](../python/guides/provider-configuration.md#cloudgpu) |
 | **llm.buzz** | `openai/gpt-5.4-mini` | ✅ | ✅ | OpenAI 兼容网关，模型 id 带厂商前缀（列表：`GET https://api.llm.buzz/api/v1/models`）。此预设仅 LLM（请搭配 OpenAI 兼容嵌入器）。密钥：`LLM_BUZZ_API_KEY` |
+| **LLMTR** | `qwen/qwen3.8-27b-free`、`llmtr/qwen3-8-27b` | ✅ | ✅ | OpenAI 兼容网关。默认模型为免费的 `qwen/qwen3.8-27b-free`。`llmtr/...` 的 `llmtr/` 前缀属于模型 id（用 `llmtr:llmtr/qwen3-8-27b` 覆盖）。同时提供嵌入（`llmtr/embeddingmagibu-200m`），一个密钥即可覆盖 LLM 与嵌入器。密钥：`LLMTR_API_KEY` |
 | **阿里云百炼** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | 直接使用，无需修改 |
 | **阿里云百炼** | qwen-max / deepseek-v3 | ❌ | ❌ | 仅支持 `json_object`，不兼容 function calling 结构化输出 |
 
@@ -101,6 +102,15 @@ llm, emb = create_client(
 llm, emb = create_client(
     llm="runcrate",  # 默认模型：deepseek-ai/DeepSeek-V4.1-Flash
     embedder="runcrate",  # 默认嵌入器：BAAI/bge-m3
+)
+
+# LLMTR —— OpenAI 兼容网关。默认模型为免费的 qwen/qwen3.8-27b-free。
+# llmtr/qwen3-8-27b 这类 id 的 llmtr/ 前缀属于模型 id，
+# 用 "llmtr:llmtr/qwen3-8-27b" 覆盖。同时提供嵌入，一个密钥覆盖两者。
+# 密钥：LLMTR_API_KEY。
+llm, emb = create_client(
+    llm="llmtr",  # 默认模型：qwen/qwen3.8-27b-free
+    embedder="llmtr",  # 默认嵌入器：llmtr/embeddingmagibu-200m
 )
 
 # 本地 Ollama —— OpenAI 兼容，地址 http://localhost:11434/v1，嵌入共用同一端点
