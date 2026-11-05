@@ -354,7 +354,7 @@ identifiers:
 
 ## 📰 What's New
 
-**v0.11.2** — 🔌 llm.buzz & CloudGPU presets ship (v0.11.1 notes had listed llm.buzz prematurely — now really included) · 📚 provider docs deduplicated & completed.
+**v0.12.0** — 📁 Nested directory support: `he parse`/`he feed` walk subdirectories recursively; same-named files stay distinct via relative-path source ids.
 
 📰 **[Full release notes](https://yifanfeng97.github.io/Hyper-Extract/latest/news/)** · [All releases](https://github.com/yifanfeng97/hyper-extract/releases)
 

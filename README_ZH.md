@@ -354,7 +354,7 @@ identifiers:
 
 ## 📰 最新动态
 
-**v0.11.2** — 🔌 llm.buzz 与 CloudGPU 预设上线（v0.11.1 说明曾误列 llm.buzz，本版真正包含）· 📚 provider 文档去重补全。
+**v0.12.0** — 📁 嵌套目录支持：`he parse`/`he feed` 递归遍历子目录；同名文件经相对路径来源 id 保持独立。
 
 📰 **[完整版本说明](https://yifanfeng97.github.io/Hyper-Extract/latest/zh/news/)** · [全部 Releases](https://github.com/yifanfeng97/hyper-extract/releases)
 
