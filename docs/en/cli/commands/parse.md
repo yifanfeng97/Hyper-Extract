@@ -38,8 +38,9 @@ pip install "hyperextract[ingest]"
 | Email | `.eml` `.msg` | ingest extra |
 
 Suffix matching is case-insensitive. Scanned (image-only) PDFs have no text
-layer — run OCR first. Directory mode is non-recursive: supported files in
-that folder are read; other regular files are skipped with a warning. Stdin
+layer — run OCR first. Directory mode walks nested subdirectories
+recursively and reads every supported file found; other regular files are
+skipped with a warning. Use `--flat` to scan the top level only. Stdin
 (`-`) is not suffix-checked.
 
 ## Options
@@ -86,7 +87,7 @@ he parse document.md -o ./output/ -l en
 
 ### Process a Directory
 
-Directory mode is non-recursive and reads supported files in that folder (`.txt`/`.md` always; PDF/DOCX/… when `hyperextract[ingest]` is installed); other regular files at the same level are skipped with a warning.
+Directory mode walks nested subdirectories recursively and reads supported files in the tree (`.txt`/`.md` always; PDF/DOCX/… when `hyperextract[ingest]` is installed); other regular files are skipped with a warning. Use `--flat` for the legacy top-level-only scan.
 
 ```bash
 he parse ./documents/ -t general/concept_graph -o ./output/ -l en

@@ -42,7 +42,7 @@ ka.feed_text(text, source_id="contract-acme")
 ```
 
 !!! tip
-    当输入是**目录**时，`he parse` 会自动按文件名标注每个文件——无需显式 `--source`。
+    当输入是**目录**时，`he parse` 会递归遍历嵌套子目录，并按相对根目录的路径标注每个文件（如 `sub/overview.md`）——无需显式 `--source`，不同子目录下的同名文件也不会冲突。
 
 ### 2. 打标签
 

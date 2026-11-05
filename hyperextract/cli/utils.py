@@ -1,5 +1,6 @@
 """Common utilities for Hyper-Extract CLI."""
 
+import os
 import sys
 from pathlib import Path
 
@@ -75,30 +76,66 @@ def require_supported_text_input(input_path: str) -> None:
     raise typer.Exit(1)
 
 
-def collect_directory_text_inputs(directory: Path) -> list[Path]:
-    """Return non-recursive readable files in ``directory``.
+def collect_directory_text_inputs(
+    directory: Path, *, recursive: bool = True
+) -> list[tuple[Path, str]]:
+    """Collect readable files under ``directory`` as (path, relative_id) pairs.
+
+    Recursive by default: nested directories are walked, and hidden
+    directories/files (dot-prefixed names, including ``.DS_Store``) are
+    pruned. With ``recursive=False`` only the top level is scanned (the
+    pre-0.12 behavior).
+
+    ``relative_id`` is the file's path relative to ``directory`` in POSIX
+    form (e.g. ``sub/overview.md``) and doubles as the default per-file
+    source id, so same-named files in different subdirectories no longer
+    collide in the source ledger.
+
+    Unsupported regular files are skipped with a warning (up to 10 relative
+    paths plus a remaining count).
 
     Raises:
         typer.Exit: If the directory contains no readable files.
-
-    Other regular files at the same level produce a warning (up to 10 names
-    plus a remaining count) and are skipped. ``.DS_Store`` is ignored.
     """
-    text_files = sorted(
-        (
-            path
-            for path in directory.glob("*")
-            if path.is_file() and _is_supported_text_suffix(path)
-        ),
-        key=lambda path: path.name.lower(),
-    )
-    if not text_files:
+
+    def _walk() -> tuple[list[tuple[Path, str]], list[Path]]:
+        supported: list[tuple[Path, str]] = []
+        unsupported: list[Path] = []
+        for root, dirs, files in os.walk(directory, followlinks=False):
+            # Prune hidden directories (e.g. .git, .venv) before descending.
+            dirs[:] = sorted(d for d in dirs if not d.startswith("."))
+            for name in sorted(files):
+                if name.startswith(".") or name == _DS_STORE:
+                    continue
+                path = Path(root) / name
+                rel = path.relative_to(directory).as_posix()
+                if _is_supported_text_suffix(path):
+                    supported.append((path, rel))
+                else:
+                    unsupported.append(path)
+        return supported, unsupported
+
+    def _scan_top() -> tuple[list[tuple[Path, str]], list[Path]]:
+        supported: list[tuple[Path, str]] = []
+        unsupported: list[Path] = []
+        for path in sorted(directory.iterdir(), key=lambda p: p.name.lower()):
+            if path.name == _DS_STORE:
+                continue
+            rel = path.name
+            if _is_supported_text_suffix(path):
+                supported.append((path, rel))
+            elif path.is_file():
+                unsupported.append(path)
+        return supported, unsupported
+
+    supported, unsupported = _walk() if recursive else _scan_top()
+    supported.sort(key=lambda pair: pair[1].lower())
+
+    if not supported:
         skipped_ingestable = [
             path
-            for path in directory.iterdir()
-            if path.is_file()
-            and path.suffix.lower() in INGESTABLE_SUFFIXES
-            and not markitdown_available()
+            for path in unsupported
+            if path.suffix.lower() in INGESTABLE_SUFFIXES and not markitdown_available()
         ]
         if skipped_ingestable:
             console.print(
@@ -108,39 +145,21 @@ def collect_directory_text_inputs(directory: Path) -> list[Path]:
                 'pip install "hyperextract\\[ingest]"'
             )
         else:
-            console.print(
-                f"[red]Error:[/red] No .txt or .md files found in {directory}"
-            )
+            console.print(f"[red]Error:[/red] No readable files found in {directory}")
         raise typer.Exit(1)
 
-    skipped = sorted(
-        (
-            path
-            for path in directory.iterdir()
-            if path.is_file()
-            and path.name != _DS_STORE
-            and not _is_supported_text_suffix(path)
-        ),
-        key=lambda path: path.name.lower(),
-    )
-    if skipped:
-        preview = skipped[:_SKIPPED_FILE_PREVIEW_LIMIT]
-        listed = ", ".join(path.name for path in preview)
-        remaining = len(skipped) - len(preview)
-        extra = f" (+{remaining} more)" if remaining else ""
-        hint = (
-            " Install the ingest extra for documents: "
-            'pip install "hyperextract\\[ingest]"'
-            if any(p.suffix.lower() in INGESTABLE_SUFFIXES for p in skipped)
-            and not markitdown_available()
-            else ""
-        )
+    if unsupported:
+        preview = sorted(p.relative_to(directory).as_posix() for p in unsupported)[
+            :_SKIPPED_FILE_PREVIEW_LIMIT
+        ]
+        listed = ", ".join(preview)
+        remaining = len(unsupported) - len(preview)
+        extra = f" (+{remaining} more)" if remaining > 0 else ""
         console.print(
-            f"[yellow]Warning:[/yellow] skipped unsupported file(s): "
-            f"{listed}{extra}.{hint}"
+            f"[yellow]Warning:[/yellow] skipped unsupported file(s): {listed}{extra}"
         )
 
-    return text_files
+    return supported
 
 
 def read_input(input_path: str) -> str:

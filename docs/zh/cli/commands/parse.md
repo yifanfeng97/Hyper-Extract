@@ -36,7 +36,7 @@ pip install "hyperextract[ingest]"
 | EPUB / ZIP | `.epub` `.zip` | ingest extra |
 | 邮件 | `.eml` `.msg` | ingest extra |
 
-后缀匹配大小写不敏感。扫描版（纯图片）PDF 没有文字层——请先做 OCR。目录模式非递归：读取该目录下受支持的文件；同层其它常规文件会 warning 并跳过。标准输入（`-`）不检查后缀。
+后缀匹配大小写不敏感。扫描版（纯图片）PDF 没有文字层——请先做 OCR。目录模式递归遍历嵌套子目录：读取目录树下所有受支持的文件；其它常规文件会 warning 并跳过。`--flat` 可退回仅扫描顶层。标准输入（`-`）不检查后缀。
 
 ## 选项
 
@@ -82,7 +82,9 @@ he parse document.md -o ./output/ -l zh
 
 ### 处理目录
 
-目录模式非递归：读取该目录下受支持的文件（`.txt`/`.md` 始终支持；安装 `hyperextract[ingest]` 后还包括 PDF/DOCX 等）；同层其它常规文件会 warning 并跳过：
+目录模式递归遍历嵌套子目录，读取其中所有受支持的文件（`.txt`/`.md` 始终支持；安装 `hyperextract[ingest]` 后还包括 PDF/DOCX 等）；其它常规文件会 warning 并跳过。使用 `--flat` 仅扫描顶层。
+
+逐文件来源 id 为相对遍历根目录的路径（如 `sub/overview.md`），因此不同子目录下的同名文件在溯源账本中不会冲突：
 
 ```bash
 he parse ./documents/ -t general/concept_graph -o ./output/ -l zh

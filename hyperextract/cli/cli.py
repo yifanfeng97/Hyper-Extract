@@ -272,6 +272,11 @@ def parse(
     no_index: bool = typer.Option(
         False, "--no-index", help="Skip building search index"
     ),
+    flat: bool = typer.Option(
+        False,
+        "--flat",
+        help="Scan a directory non-recursively (top level only)",
+    ),
     source: str | None = typer.Option(
         None,
         "--source",
@@ -353,18 +358,23 @@ def parse(
 
         if input_path.is_dir():
             progress.update(task, description="Processing directory...")
-            text_files = collect_directory_text_inputs(input_path)
-
-            # Per-file provenance: each file is attributed by its stem
-            # unless a single --source id was given explicitly.
-            file_sources = [source or file_path.stem for file_path in text_files]
+            # (path, relative_id) pairs; the relative id doubles as the
+            # per-file source, so same-named files in different
+            # subdirectories stay distinct in the ledger.
+            text_files = collect_directory_text_inputs(input_path, recursive=not flat)
+            # Top-level files keep the bare stem (matches pre-0.12 source
+            # ids); nested files use the suffix-less relative path.
+            file_sources = [
+                source or Path(rel).with_suffix("").as_posix()
+                for _path, rel in text_files
+            ]
 
             all_text = []
-            for file_path, file_source in zip(text_files, file_sources):
+            for file_path, file_source in text_files:
                 text = read_input(str(file_path))
                 all_text.append(text)
                 console.print(
-                    f"[dim]Loaded {file_path.name}: {len(text)} chars "
+                    f"[dim]Loaded {file_path}: {len(text)} chars "
                     f"(source: {file_source})[/dim]"
                 )
 
@@ -1396,6 +1406,11 @@ def feed(
         "--refeed",
         help="Re-ingest even if this source's content hash is unchanged",
     ),
+    flat: bool = typer.Option(
+        False,
+        "--flat",
+        help="Scan a directory non-recursively (top level only)",
+    ),
     store_doc: bool = typer.Option(
         True,
         "--store-doc/--no-store-doc",
@@ -1446,10 +1461,15 @@ def feed(
         ingested = 0
         if input_path is not None and input_path.is_dir():
             progress.update(task, description="Processing directory...")
-            text_files = collect_directory_text_inputs(input_path)
-            file_sources = [source or file_path.stem for file_path in text_files]
+            text_files = collect_directory_text_inputs(input_path, recursive=not flat)
+            # Top-level files keep the bare stem (matches pre-0.12 source
+            # ids); nested files use the suffix-less relative path.
+            file_sources = [
+                source or Path(rel).with_suffix("").as_posix()
+                for _path, rel in text_files
+            ]
             progress.update(task, description="Appending knowledge...")
-            for file_path, file_source in zip(text_files, file_sources):
+            for (file_path, _rel), file_source in zip(text_files, file_sources):
                 if _feed_one_document(
                     ka,
                     output_path,

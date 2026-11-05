@@ -42,7 +42,7 @@ ka.feed_text(text, source_id="contract-acme")
 ```
 
 !!! tip
-    When the input is a **directory**, `he parse` automatically attributes each file by its stem — no explicit `--source` needed.
+    When the input is a **directory**, `he parse` walks nested subdirectories and attributes each file by its path relative to the root (e.g. `sub/overview.md`) — no explicit `--source` needed, and same-named files in different folders stay distinct.
 
 ### 2. Tag Sources
 

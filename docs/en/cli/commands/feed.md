@@ -15,7 +15,7 @@ he feed KA_PATH INPUT [OPTIONS]
 | Argument | Description |
 |----------|-------------|
 | `KA_PATH` | Path to existing knowledge abstract directory |
-| `INPUT` | Input file, directory, or `-` for stdin |
+| `INPUT` | Input file, directory (walked recursively), or `-` for stdin |
 
 Supported suffixes: `.txt`/`.md` always; PDF, Word, PowerPoint, Excel, HTML,
 CSV, JSON, XML, EPUB and more via the optional ingest extra —
