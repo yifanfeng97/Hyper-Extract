@@ -7,6 +7,7 @@ source ledger.
 """
 
 import json
+import re
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -221,3 +222,86 @@ class TestNestedFeed:
             for call in ka.feed_text.call_args_list
         }
         assert set(fed) == {"top"}
+
+
+def _squeezed(result) -> str:
+    """Console output with all whitespace removed.
+
+    Rich wraps at the terminal width, so a long tmp_path can split a
+    "(source: ...)" token across lines; squeezing makes the assertions
+    independent of where the break landed.
+    """
+    return re.sub(r"\s+", "", result.output)
+
+
+class TestScanRegressions:
+    """The "Loaded" line must agree with the ledger, and the top-level
+    scan must not hand a directory to the reader."""
+
+    def test_loaded_line_reports_the_stored_source_id(self, tmp_path):
+        tree = tmp_path / "docs"
+        _tree(tree)
+        out = tmp_path / "out"
+        with _mock_parse() as ka:
+            result = _invoke_parse(tree, out)
+
+        assert result.exit_code == 0, result.output
+        stored = {
+            call.kwargs.get("source_id") for call in ka.feed_text.call_args_list
+        }
+        printed = _squeezed(result)
+        # Every id the ledger holds is the id the user was shown, suffix
+        # stripped — not "a/overview.md".
+        for source_id in stored:
+            assert f"(source:{source_id})" in printed
+        assert "(source:a/overview.md)" not in printed
+
+    def test_loaded_line_honors_explicit_source(self, tmp_path):
+        tree = tmp_path / "docs"
+        _tree(tree)
+        out = tmp_path / "out"
+        with _mock_parse() as ka:
+            result = _invoke_parse(tree, out, extra=("--source", "my-corpus"))
+
+        assert result.exit_code == 0, result.output
+        assert {
+            call.kwargs.get("source_id") for call in ka.feed_text.call_args_list
+        } == {"my-corpus"}
+        printed = _squeezed(result)
+        assert printed.count("(source:my-corpus)") == 3
+        assert "(source:top.md)" not in printed
+
+    def test_flat_scan_skips_directory_with_supported_suffix(self, tmp_path):
+        tree = tmp_path / "docs"
+        tree.mkdir()
+        (tree / "top.md").write_text("top level", encoding="utf-8")
+        # A directory whose name ends in .md is not a readable file.
+        (tree / "notes.md").mkdir()
+        out = tmp_path / "out"
+        with _mock_parse() as ka:
+            result = _invoke_parse(tree, out, extra=("--flat",))
+
+        assert result.exit_code == 0, result.output
+        assert {
+            call.kwargs.get("source_id") for call in ka.feed_text.call_args_list
+        } == {"top"}
+
+    def test_skip_warning_points_at_the_ingest_extra(self, tmp_path):
+        tree = tmp_path / "docs"
+        (tree / "sub").mkdir(parents=True)
+        (tree / "sub" / "keep.md").write_text("keep", encoding="utf-8")
+        (tree / "sub" / "paper.pdf").write_bytes(b"%PDF-1.4")
+        out = tmp_path / "out"
+        with (
+            patch(
+                "hyperextract.cli.utils.markitdown_available",
+                return_value=False,
+            ),
+            _mock_parse(),
+        ):
+            result = _invoke_parse(tree, out)
+
+        assert result.exit_code == 0, result.output
+        printed = _squeezed(result)
+        assert "sub/paper.pdf" in printed
+        assert "ingest" in printed
