@@ -7,7 +7,7 @@ source ledger.
 """
 
 import json
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -179,9 +179,14 @@ class TestNestedFeed:
 
     @staticmethod
     def _patches(ka):
+        from contextlib import ExitStack
+
         from hyperextract.utils.template_engine.template import Template as T
 
-        return patch.object(T, "create", return_value=ka)
+        stack = ExitStack()
+        stack.enter_context(patch("hyperextract.cli.cli.validate_config"))
+        stack.enter_context(patch.object(T, "create", return_value=ka))
+        return stack
 
     def test_feed_directory_recursive(self, tmp_path):
         ka, ka_dir = self._make_ka(tmp_path)
