@@ -119,12 +119,14 @@ def collect_directory_text_inputs(
         supported: list[tuple[Path, str]] = []
         unsupported: list[Path] = []
         for path in sorted(directory.iterdir(), key=lambda p: p.name.lower()):
-            if path.name == _DS_STORE:
+            # Check is_file() before the suffix: a *directory* named
+            # "notes.md" has a supported suffix but cannot be read.
+            if path.name == _DS_STORE or not path.is_file():
                 continue
             rel = path.name
             if _is_supported_text_suffix(path):
                 supported.append((path, rel))
-            elif path.is_file():
+            else:
                 unsupported.append(path)
         return supported, unsupported
 
@@ -155,8 +157,18 @@ def collect_directory_text_inputs(
         listed = ", ".join(preview)
         remaining = len(unsupported) - len(preview)
         extra = f" (+{remaining} more)" if remaining > 0 else ""
+        # Document formats are only unsupported because the backend is
+        # missing, so point at the extra that would make them readable.
+        hint = (
+            " Install the ingest extra for documents: "
+            'pip install "hyperextract\\[ingest]"'
+            if any(p.suffix.lower() in INGESTABLE_SUFFIXES for p in unsupported)
+            and not markitdown_available()
+            else ""
+        )
         console.print(
-            f"[yellow]Warning:[/yellow] skipped unsupported file(s): {listed}{extra}"
+            f"[yellow]Warning:[/yellow] skipped unsupported file(s): "
+            f"{listed}{extra}.{hint}"
         )
 
     return supported

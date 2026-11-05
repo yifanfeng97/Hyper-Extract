@@ -370,7 +370,7 @@ def parse(
             ]
 
             all_text = []
-            for file_path, file_source in text_files:
+            for (file_path, _rel), file_source in zip(text_files, file_sources):
                 text = read_input(str(file_path))
                 all_text.append(text)
                 console.print(
@@ -381,7 +381,7 @@ def parse(
             progress.update(task, description="Extracting knowledge...")
             logger.debug("stage=feed_text_invoked")
             failed_chunks = 0
-            for file_path, file_source, text in zip(text_files, file_sources, all_text):
+            for file_source, text in zip(file_sources, all_text):
                 ka.feed_text(text, source_id=file_source)
                 failed_chunks += len(getattr(ka, "extraction_failures", []))
             if failed_chunks:
