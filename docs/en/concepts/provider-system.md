@@ -1,6 +1,6 @@
 # Provider System
 
-Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, **Cheaper Inference**, **CloudGPU**, **llm.buzz**, and local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
+Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, **Cheaper Inference**, **CloudGPU**, **llm.buzz**, **LLMTR**, and local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
 
 ---
 
@@ -25,6 +25,7 @@ Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**,
 | **Moonshot (Kimi)** | `kimi-k3.1-pro`, `kimi-k3.1-pro-highspeed`, `kimi-k3`, `kimi-k2.7-code` | ✅ | ✅ | OpenAI-compatible chat endpoint; `tool_choice` accepts a named function. Bare model ids, no vendor prefix. LLM only — no embeddings API (pair with an OpenAI-compatible embedder). Keys: `MOONSHOT_API_KEY` |
 | **CloudGPU** | `deepseek-v4.1-flash` | ✅ | ✅ | OpenAI-compatible LLM preset. Model ids have no vendor prefix. Configure an embedding provider separately. Key: `CLOUDGPU_API_KEY`. [Setup guide](../python/guides/provider-configuration.md#cloudgpu) |
 | **llm.buzz** | `openai/gpt-5.4-mini` | ✅ | ✅ | OpenAI-compatible gateway with vendor-prefixed model ids (list: `GET https://api.llm.buzz/api/v1/models`). LLM only in this preset (pair with an OpenAI-compatible embedder). Keys: `LLM_BUZZ_API_KEY` |
+| **LLMTR** | `qwen/qwen3.8-27b-free`, `llmtr/qwen3-8-27b` | ✅ | ✅ | OpenAI-compatible gateway. Default model is the free `qwen/qwen3.8-27b-free`. `llmtr/...` ids keep the `llmtr/` prefix (override with `llmtr:llmtr/qwen3-8-27b`). Also serves embeddings (`llmtr/embeddingmagibu-200m`), so one key covers the LLM and the embedder. Keys: `LLMTR_API_KEY` |
 | **Alibaba Bailian** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | Works out of the box |
 | **Alibaba Bailian** | qwen-max / deepseek-v3 | ❌ | ❌ | Only `json_object`; not compatible with function-calling structured output |
 
@@ -105,6 +106,16 @@ llm, emb = create_client(
 llm, emb = create_client(
     llm="runcrate",  # default model: deepseek-ai/DeepSeek-V4.1-Flash
     embedder="runcrate",  # default embedder: BAAI/bge-m3
+)
+
+# LLMTR — OpenAI-compatible gateway. Default model is the free
+# qwen/qwen3.8-27b-free. Ids such as llmtr/qwen3-8-27b keep the llmtr/
+# prefix; override with "llmtr:llmtr/qwen3-8-27b".
+# Serves embeddings too, so one key covers both.
+# Key: LLMTR_API_KEY.
+llm, emb = create_client(
+    llm="llmtr",  # default model: qwen/qwen3.8-27b-free
+    embedder="llmtr",  # default embedder: llmtr/embeddingmagibu-200m
 )
 
 # Ollama — local runtime, OpenAI-compatible on http://localhost:11434/v1.

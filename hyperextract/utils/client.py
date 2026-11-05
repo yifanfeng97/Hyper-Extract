@@ -160,6 +160,15 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
         "default_llm": "openai/gpt-5.4-mini",
         "default_embedder": None,
     },
+    # LLMTR. OpenAI-compatible gateway. Model ids are vendor-prefixed; ids
+    # such as "llmtr/qwen3-8-27b" keep the "llmtr/" prefix (it is part of the
+    # id, not a second provider). It also serves embeddings, so one key covers
+    # both the LLM and the embedder ("llmtr/embeddingmagibu-200m").
+    "llmtr": {
+        "base_url": "https://llmtr.com/v1",
+        "default_llm": "qwen/qwen3.8-27b-free",
+        "default_embedder": "llmtr/embeddingmagibu-200m",
+    },
     # Anthropic (Claude). Uses the native ChatAnthropic client, so base_url is
     # left empty (the SDK targets api.anthropic.com by default). Anthropic has
     # no embeddings API, hence default_embedder is None — pair it with an
@@ -224,6 +233,7 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "ollama": ("OLLAMA_API_KEY",),
     "cloudgpu": ("CLOUDGPU_API_KEY",),
     "llmbuzz": ("LLM_BUZZ_API_KEY",),
+    "llmtr": ("LLMTR_API_KEY",),
 }
 
 

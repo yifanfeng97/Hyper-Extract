@@ -441,6 +441,7 @@ def init(
         ("ollama", "本地 Ollama", "http://localhost:11434/v1"),
         ("cloudgpu", "CloudGPU", "https://cloudgpu.app/v1"),
         ("llmbuzz", "llm.buzz", "https://api.llm.buzz/api/v1"),
+        ("llmtr", "LLMTR", "https://llmtr.com/v1"),
         ("vllm", "本地 vLLM", "自定义地址"),
         ("custom", "其他 OpenAI 兼容接口", "自定义地址"),
     ]

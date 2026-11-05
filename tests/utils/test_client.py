@@ -292,6 +292,25 @@ class TestCreateLLM:
         llm = create_llm("llmbuzz")
         assert llm.openai_api_key.get_secret_value() == "lb-from-env"
 
+    def test_create_llm_llmtr(self):
+        """Create LLM with llmtr preset (OpenAI-compatible gateway)."""
+        llm = create_llm("llmtr", api_key="llmtr-test")
+        assert llm.model_name == "qwen/qwen3.8-27b-free"
+        assert llm.openai_api_base == "https://llmtr.com/v1"
+
+    def test_create_llm_llmtr_model_override(self):
+        """An llmtr/ model id after the colon is kept whole."""
+        llm = create_llm("llmtr:llmtr/qwen3-8-27b", api_key="llmtr-test")
+        assert llm.model_name == "llmtr/qwen3-8-27b"
+        assert llm.openai_api_base == "https://llmtr.com/v1"
+
+    def test_create_llm_llmtr_env_key(self, monkeypatch):
+        """LLMTR key is read from LLMTR_API_KEY, ahead of OPENAI_API_KEY."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-test")
+        monkeypatch.setenv("LLMTR_API_KEY", "llmtr-from-env")
+        llm = create_llm("llmtr")
+        assert llm.openai_api_key.get_secret_value() == "llmtr-from-env"
+
     def test_create_llm_orcarouter(self):
         """Create LLM with orcarouter preset (OpenAI-compatible gateway)."""
         llm = create_llm("orcarouter", api_key="sk-test")
@@ -844,6 +863,14 @@ class TestProviderPresets:
         assert preset["base_url"] == "https://api.llm.buzz/api/v1"
         assert preset["default_llm"] == "openai/gpt-5.4-mini"
         assert preset["default_embedder"] is None
+
+    def test_llmtr_provider(self):
+        """LLMTR has its own preset with an embedder on the same endpoint."""
+        assert "llmtr" in PROVIDER_PRESETS
+        preset = PROVIDER_PRESETS["llmtr"]
+        assert preset["base_url"] == "https://llmtr.com/v1"
+        assert preset["default_llm"] == "qwen/qwen3.8-27b-free"
+        assert preset["default_embedder"] == "llmtr/embeddingmagibu-200m"
 
     def test_orcarouter_provider(self):
         """OrcaRouter has its own preset (OpenAI-compatible, named models)."""
