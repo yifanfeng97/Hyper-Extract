@@ -401,7 +401,11 @@ def parse(
             if source:
                 from hyperextract.utils.document_store import SourceDocumentStore
 
-                SourceDocumentStore(output_path).store_file(source, input)
+                store = SourceDocumentStore(output_path)
+                if input == "-":
+                    store.store_text(source, text, "stdin.txt")
+                else:
+                    store.store_file(source, input)
             ka.feed_text(text, source_id=source)
             failures = getattr(ka, "extraction_failures", [])
             if failures:

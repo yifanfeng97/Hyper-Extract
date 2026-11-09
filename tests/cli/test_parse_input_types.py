@@ -109,6 +109,36 @@ class TestParseInputTypes:
         assert result.exit_code == 0
         ka.feed_text.assert_called_once_with("hello from stdin", source_id=None)
 
+    def test_attributed_stdin_is_archived(self, tmp_path):
+        from hyperextract.utils.document_store import SourceDocumentStore
+
+        out = tmp_path / "out"
+        with _mock_parse() as ka:
+            result = runner.invoke(
+                app,
+                [
+                    "parse",
+                    "-",
+                    "-o",
+                    str(out),
+                    "-t",
+                    "general/graph",
+                    "-l",
+                    "en",
+                    "--source",
+                    "stdin-doc",
+                    "--no-index",
+                ],
+                input="hello from stdin",
+            )
+
+        assert result.exit_code == 0, result.exception
+        ka.feed_text.assert_called_once_with("hello from stdin", source_id="stdin-doc")
+        archived = SourceDocumentStore(out).find("stdin-doc")
+        assert len(archived) == 1
+        assert archived[0].name.endswith("-stdin.txt")
+        assert archived[0].read_text(encoding="utf-8") == "hello from stdin"
+
     def test_document_input_converted_and_fed(self, tmp_path):
         """With markitdown installed, an HTML file flows through end to end."""
         html = tmp_path / "page.html"
