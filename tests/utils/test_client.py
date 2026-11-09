@@ -311,6 +311,25 @@ class TestCreateLLM:
         llm = create_llm("llmtr")
         assert llm.openai_api_key.get_secret_value() == "llmtr-from-env"
 
+    def test_create_llm_standardcompute(self):
+        """Create LLM with standardcompute preset (routed default model)."""
+        llm = create_llm("standardcompute", api_key="sc-test")
+        assert llm.model_name == "StandardCompute"
+        assert llm.openai_api_base == "https://api.stdcmpt.com/v1"
+
+    def test_create_llm_standardcompute_model_override(self):
+        """A pinned id with a region suffix after the colon is kept whole."""
+        llm = create_llm("standardcompute:openai/gpt-5.6-luna:eu", api_key="sc-test")
+        assert llm.model_name == "openai/gpt-5.6-luna:eu"
+        assert llm.openai_api_base == "https://api.stdcmpt.com/v1"
+
+    def test_create_llm_standardcompute_env_key(self, monkeypatch):
+        """Key is read from STANDARDCOMPUTE_API_KEY, ahead of OPENAI_API_KEY."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-test")
+        monkeypatch.setenv("STANDARDCOMPUTE_API_KEY", "sc-from-env")
+        llm = create_llm("standardcompute")
+        assert llm.openai_api_key.get_secret_value() == "sc-from-env"
+
     def test_create_llm_orcarouter(self):
         """Create LLM with orcarouter preset (OpenAI-compatible gateway)."""
         llm = create_llm("orcarouter", api_key="sk-test")
@@ -871,6 +890,14 @@ class TestProviderPresets:
         assert preset["base_url"] == "https://llmtr.com/v1"
         assert preset["default_llm"] == "qwen/qwen3.8-27b-free"
         assert preset["default_embedder"] == "llmtr/embeddingmagibu-200m"
+
+    def test_standardcompute_provider(self):
+        """Standard Compute has its own preset, chat models only."""
+        assert "standardcompute" in PROVIDER_PRESETS
+        preset = PROVIDER_PRESETS["standardcompute"]
+        assert preset["base_url"] == "https://api.stdcmpt.com/v1"
+        assert preset["default_llm"] == "StandardCompute"
+        assert preset["default_embedder"] is None
 
     def test_orcarouter_provider(self):
         """OrcaRouter has its own preset (OpenAI-compatible, named models)."""

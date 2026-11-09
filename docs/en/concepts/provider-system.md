@@ -1,6 +1,6 @@
 # Provider System
 
-Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, **Cheaper Inference**, **CloudGPU**, **llm.buzz**, **LLMTR**, and local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
+Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, **Cheaper Inference**, **CloudGPU**, **llm.buzz**, **LLMTR**, **Standard Compute**, and local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
 
 ---
 
@@ -26,6 +26,7 @@ Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**,
 | **CloudGPU** | `deepseek-v4.1-flash` | ✅ | ✅ | OpenAI-compatible LLM preset. Model ids have no vendor prefix. Configure an embedding provider separately. Key: `CLOUDGPU_API_KEY`. [Setup guide](../python/guides/provider-configuration.md#cloudgpu) |
 | **llm.buzz** | `openai/gpt-5.4-mini` | ✅ | ✅ | OpenAI-compatible gateway with vendor-prefixed model ids (list: `GET https://api.llm.buzz/api/v1/models`). LLM only in this preset (pair with an OpenAI-compatible embedder). Keys: `LLM_BUZZ_API_KEY` |
 | **LLMTR** | `qwen/qwen3.8-27b-free`, `llmtr/qwen3-8-27b` | ✅ | ✅ | OpenAI-compatible gateway. Default model is the free `qwen/qwen3.8-27b-free`. `llmtr/...` ids keep the `llmtr/` prefix (override with `llmtr:llmtr/qwen3-8-27b`). Also serves embeddings (`llmtr/embeddingmagibu-200m`), so one key covers the LLM and the embedder. Keys: `LLMTR_API_KEY` |
+| **Standard Compute** | `StandardCompute`, `deepseek/deepseek-v4-flash` | ✅ | ✅ | OpenAI-compatible gateway. The default `StandardCompute` id is routed: each request goes to the cheapest enabled model that can handle it, with automatic fallback. Pin a model with `standardcompute:deepseek/deepseek-v4-flash` (list: `GET https://api.stdcmpt.com/v1/models`). LLM only (pair with an OpenAI-compatible embedder). Keys: `STANDARDCOMPUTE_API_KEY` |
 | **Alibaba Bailian** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | Works out of the box |
 | **Alibaba Bailian** | qwen-max / deepseek-v3 | ❌ | ❌ | Only `json_object`; not compatible with function-calling structured output |
 
@@ -116,6 +117,17 @@ llm, emb = create_client(
 llm, emb = create_client(
     llm="llmtr",  # default model: qwen/qwen3.8-27b-free
     embedder="llmtr",  # default embedder: llmtr/embeddingmagibu-200m
+)
+
+# Standard Compute: OpenAI-compatible gateway. The default model id
+# StandardCompute routes each request to the cheapest enabled model that can
+# handle it, with automatic fallback. Pin a model with
+# "standardcompute:deepseek/deepseek-v4-flash". Chat models only, so pair it
+# with an OpenAI-compatible embedder.
+# Key: STANDARDCOMPUTE_API_KEY.
+llm, emb = create_client(
+    llm="standardcompute",  # default model: StandardCompute (routed)
+    embedder="openai",
 )
 
 # Ollama — local runtime, OpenAI-compatible on http://localhost:11434/v1.

@@ -169,6 +169,16 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
         "default_llm": "qwen/qwen3.8-27b-free",
         "default_embedder": "llmtr/embeddingmagibu-200m",
     },
+    # Standard Compute. OpenAI-compatible gateway. The default model id
+    # "StandardCompute" is routed: each request goes to the cheapest enabled
+    # model that can handle it, with automatic fallback. Pinned ids are
+    # vendor-prefixed (list: GET https://api.stdcmpt.com/v1/models). Chat
+    # models only, so default_embedder is None.
+    "standardcompute": {
+        "base_url": "https://api.stdcmpt.com/v1",
+        "default_llm": "StandardCompute",
+        "default_embedder": None,
+    },
     # Anthropic (Claude). Uses the native ChatAnthropic client, so base_url is
     # left empty (the SDK targets api.anthropic.com by default). Anthropic has
     # no embeddings API, hence default_embedder is None — pair it with an
@@ -234,6 +244,7 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "cloudgpu": ("CLOUDGPU_API_KEY",),
     "llmbuzz": ("LLM_BUZZ_API_KEY",),
     "llmtr": ("LLMTR_API_KEY",),
+    "standardcompute": ("STANDARDCOMPUTE_API_KEY",),
 }
 
 
