@@ -1,6 +1,6 @@
 # Provider 系统
 
-Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**Runcrate**、**Cerebras**、**Mistral AI**、**Moonshot (Kimi)**、**Cheaper Inference**、**CloudGPU**、**llm.buzz**、**LLMTR**、**本地 Ollama**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
+Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**Runcrate**、**Cerebras**、**Mistral AI**、**Moonshot (Kimi)**、**Cheaper Inference**、**CloudGPU**、**llm.buzz**、**LLMTR**、**Standard Compute**、**本地 Ollama**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
 
 ---
 
@@ -25,6 +25,7 @@ Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google G
 | **CloudGPU** | `deepseek-v4.1-flash` | ✅ | ✅ | OpenAI 兼容 LLM 预设，模型 id 不带厂商前缀，嵌入模型需单独配置。密钥：`CLOUDGPU_API_KEY`。[配置指南](../python/guides/provider-configuration.md#cloudgpu) |
 | **llm.buzz** | `openai/gpt-5.4-mini` | ✅ | ✅ | OpenAI 兼容网关，模型 id 带厂商前缀（列表：`GET https://api.llm.buzz/api/v1/models`）。此预设仅 LLM（请搭配 OpenAI 兼容嵌入器）。密钥：`LLM_BUZZ_API_KEY` |
 | **LLMTR** | `qwen/qwen3.8-27b-free`、`llmtr/qwen3-8-27b` | ✅ | ✅ | OpenAI 兼容网关。默认模型为免费的 `qwen/qwen3.8-27b-free`。`llmtr/...` 的 `llmtr/` 前缀属于模型 id（用 `llmtr:llmtr/qwen3-8-27b` 覆盖）。同时提供嵌入（`llmtr/embeddingmagibu-200m`），一个密钥即可覆盖 LLM 与嵌入器。密钥：`LLMTR_API_KEY` |
+| **Standard Compute** | `StandardCompute`、`deepseek/deepseek-v4-flash` | ✅ | ✅ | OpenAI 兼容网关。默认模型 id `StandardCompute` 为自动路由：每个请求发送到能处理它的最便宜的已启用模型，并自动回退。用 `standardcompute:deepseek/deepseek-v4-flash` 固定模型（列表：`GET https://api.stdcmpt.com/v1/models`）。仅 LLM（请搭配 OpenAI 兼容嵌入器）。密钥：`STANDARDCOMPUTE_API_KEY` |
 | **阿里云百炼** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | 直接使用，无需修改 |
 | **阿里云百炼** | qwen-max / deepseek-v3 | ❌ | ❌ | 仅支持 `json_object`，不兼容 function calling 结构化输出 |
 
@@ -111,6 +112,15 @@ llm, emb = create_client(
 llm, emb = create_client(
     llm="llmtr",  # 默认模型：qwen/qwen3.8-27b-free
     embedder="llmtr",  # 默认嵌入器：llmtr/embeddingmagibu-200m
+)
+
+# Standard Compute：OpenAI 兼容网关。默认模型 id StandardCompute 会把每个请求
+# 路由到能处理它的最便宜的已启用模型，并自动回退。
+# 用 "standardcompute:deepseek/deepseek-v4-flash" 固定模型。仅提供聊天模型，
+# 请搭配 OpenAI 兼容嵌入器。密钥：STANDARDCOMPUTE_API_KEY。
+llm, emb = create_client(
+    llm="standardcompute",  # 默认模型：StandardCompute（自动路由）
+    embedder="openai",
 )
 
 # 本地 Ollama —— OpenAI 兼容，地址 http://localhost:11434/v1，嵌入共用同一端点
