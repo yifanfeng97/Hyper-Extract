@@ -169,6 +169,14 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
         "default_llm": "qwen/qwen3.8-27b-free",
         "default_embedder": "llmtr/embeddingmagibu-200m",
     },
+    # UberLLM. OpenAI-compatible gateway with vendor-prefixed model ids such as
+    # "deepseek/deepseek-v4.1-flash" (list: GET https://api.uberllm.dev/v1/models).
+    # LLM only here, so pair it with an OpenAI-compatible embedder.
+    "uberllm": {
+        "base_url": "https://api.uberllm.dev/v1",
+        "default_llm": "deepseek/deepseek-v4.1-flash",
+        "default_embedder": None,
+    },
     # Anthropic (Claude). Uses the native ChatAnthropic client, so base_url is
     # left empty (the SDK targets api.anthropic.com by default). Anthropic has
     # no embeddings API, hence default_embedder is None — pair it with an
@@ -234,6 +242,7 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "cloudgpu": ("CLOUDGPU_API_KEY",),
     "llmbuzz": ("LLM_BUZZ_API_KEY",),
     "llmtr": ("LLMTR_API_KEY",),
+    "uberllm": ("UBERLLM_API_KEY",),
 }
 
 
