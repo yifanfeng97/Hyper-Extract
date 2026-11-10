@@ -311,6 +311,25 @@ class TestCreateLLM:
         llm = create_llm("llmtr")
         assert llm.openai_api_key.get_secret_value() == "llmtr-from-env"
 
+    def test_create_llm_uberllm(self):
+        """Create LLM with uberllm preset (OpenAI-compatible gateway)."""
+        llm = create_llm("uberllm", api_key="ull-test")
+        assert llm.model_name == "deepseek/deepseek-v4.1-flash"
+        assert llm.openai_api_base == "https://api.uberllm.dev/v1"
+
+    def test_create_llm_uberllm_model_override(self):
+        """A vendor-prefixed UberLLM model id after the colon is kept whole."""
+        llm = create_llm("uberllm:openai/gpt-5.4-mini", api_key="ull-test")
+        assert llm.model_name == "openai/gpt-5.4-mini"
+        assert llm.openai_api_base == "https://api.uberllm.dev/v1"
+
+    def test_create_llm_uberllm_env_key(self, monkeypatch):
+        """UberLLM key is read from UBERLLM_API_KEY, ahead of OPENAI_API_KEY."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-test")
+        monkeypatch.setenv("UBERLLM_API_KEY", "ull-from-env")
+        llm = create_llm("uberllm")
+        assert llm.openai_api_key.get_secret_value() == "ull-from-env"
+
     def test_create_llm_orcarouter(self):
         """Create LLM with orcarouter preset (OpenAI-compatible gateway)."""
         llm = create_llm("orcarouter", api_key="sk-test")
@@ -871,6 +890,14 @@ class TestProviderPresets:
         assert preset["base_url"] == "https://llmtr.com/v1"
         assert preset["default_llm"] == "qwen/qwen3.8-27b-free"
         assert preset["default_embedder"] == "llmtr/embeddingmagibu-200m"
+
+    def test_uberllm_provider(self):
+        """UberLLM has its own preset (LLM only, no embedder)."""
+        assert "uberllm" in PROVIDER_PRESETS
+        preset = PROVIDER_PRESETS["uberllm"]
+        assert preset["base_url"] == "https://api.uberllm.dev/v1"
+        assert preset["default_llm"] == "deepseek/deepseek-v4.1-flash"
+        assert preset["default_embedder"] is None
 
     def test_orcarouter_provider(self):
         """OrcaRouter has its own preset (OpenAI-compatible, named models)."""
