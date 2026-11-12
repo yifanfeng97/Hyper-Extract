@@ -703,3 +703,38 @@ def test_interactive_init_lists_moonshot():
 
     assert '"moonshot"' in inspect.getsource(init)
     assert '"cloudgpu"' in inspect.getsource(init)
+
+
+def test_get_embedder_config_reads_jina_env_key(tmp_path, monkeypatch):
+    """Empty toml api_key must resolve JINA_API_KEY, ahead of OPENAI_API_KEY."""
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-must-not-win")
+    monkeypatch.setenv("JINA_API_KEY", "jina-from-env")
+
+    cm = ConfigManager(tmp_path / "config.toml")
+    cm.set_embedder(provider="jina", model="jina-embeddings-v5-text-small", api_key="")
+    cfg = cm.get_embedder_config()
+
+    assert cfg.api_key == "jina-from-env"
+    assert cfg.base_url == "https://api.jina.ai/v1"
+
+
+def test_interactive_init_lists_jina():
+    """he config init provider list includes Jina AI."""
+    import inspect
+
+    from hyperextract.cli.commands.config import init
+
+    assert '"jina"' in inspect.getsource(init)
+
+
+def test_interactive_init_asks_for_a_separate_llm_for_jina():
+    """Selecting an embeddings-only provider must not configure it as the LLM."""
+    import inspect
+
+    from hyperextract.cli.commands.config import init
+
+    source = inspect.getsource(init)
+    assert "EMBEDDING_ONLY_PROVIDERS" in source
+    # The LLM is written from the resolved provider, not the menu choice.
+    assert "provider=llm_provider," in source

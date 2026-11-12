@@ -311,6 +311,16 @@ class TestCreateLLM:
         llm = create_llm("llmtr")
         assert llm.openai_api_key.get_secret_value() == "llmtr-from-env"
 
+    def test_create_llm_jina_raises(self):
+        """Jina serves embeddings only; asking for an LLM must fail loudly."""
+        with pytest.raises(ValueError, match="embeddings only"):
+            create_llm("jina", api_key="jina-test")
+
+    def test_create_llm_jina_raises_with_explicit_model(self):
+        """Naming a model does not conjure a chat endpoint that is not there."""
+        with pytest.raises(ValueError, match="embeddings only"):
+            create_llm("jina:jina-embeddings-v3", api_key="jina-test")
+
     def test_create_llm_orcarouter(self):
         """Create LLM with orcarouter preset (OpenAI-compatible gateway)."""
         llm = create_llm("orcarouter", api_key="sk-test")
@@ -423,6 +433,24 @@ class TestCreateEmbedder:
         assert isinstance(emb, CompatibleEmbeddings)
         assert emb._model == "mistral-embed"
 
+
+    def test_create_embedder_jina(self):
+        """Jina embedder uses CompatibleEmbeddings on the documented endpoint."""
+        emb = create_embedder("jina", api_key="jina-test")
+        assert isinstance(emb, CompatibleEmbeddings)
+        assert emb._model == "jina-embeddings-v5-text-small"
+
+    def test_create_embedder_jina_model_override(self):
+        """A bare Jina model id after the colon replaces the preset default."""
+        emb = create_embedder("jina:jina-embeddings-v3", api_key="jina-test")
+        assert emb._model == "jina-embeddings-v3"
+
+    def test_create_embedder_jina_env_key(self, monkeypatch):
+        """Jina key is read from JINA_API_KEY, ahead of OPENAI_API_KEY."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-test")
+        monkeypatch.setenv("JINA_API_KEY", "jina-from-env")
+        emb = create_embedder("jina")
+        assert emb._client.api_key == "jina-from-env"
 
     def test_create_embedder_orcarouter(self):
         """OrcaRouter embedder uses CompatibleEmbeddings (custom base_url)."""
@@ -871,6 +899,23 @@ class TestProviderPresets:
         assert preset["base_url"] == "https://llmtr.com/v1"
         assert preset["default_llm"] == "qwen/qwen3.8-27b-free"
         assert preset["default_embedder"] == "llmtr/embeddingmagibu-200m"
+
+    def test_jina_provider(self):
+        """Jina is the embeddings-only preset: an embedder but no LLM."""
+        assert "jina" in PROVIDER_PRESETS
+        preset = PROVIDER_PRESETS["jina"]
+        assert preset["base_url"] == "https://api.jina.ai/v1"
+        assert preset["default_llm"] is None
+        assert preset["default_embedder"] == "jina-embeddings-v5-text-small"
+
+    def test_embedding_only_providers_have_no_default_llm(self):
+        """EMBEDDING_ONLY_PROVIDERS and the preset data must not disagree."""
+        from hyperextract.utils.client import EMBEDDING_ONLY_PROVIDERS
+
+        for name in EMBEDDING_ONLY_PROVIDERS:
+            assert name in PROVIDER_PRESETS, name
+            assert PROVIDER_PRESETS[name]["default_llm"] is None, name
+            assert PROVIDER_PRESETS[name]["default_embedder"], name
 
     def test_orcarouter_provider(self):
         """OrcaRouter has its own preset (OpenAI-compatible, named models)."""
