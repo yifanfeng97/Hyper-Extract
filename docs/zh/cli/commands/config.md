@@ -37,6 +37,7 @@ he config [COMMAND] [OPTIONS]
 - **Mistral AI preset**: `mistral-large-latest` + `mistral-embed`（LLM 与嵌入器共用一个密钥 `MISTRAL_API_KEY`）
 - **Moonshot (Kimi) preset**: `kimi-k3.1-pro`（仅 LLM —— 无嵌入预设，请搭配 OpenAI 兼容嵌入器；密钥 `MOONSHOT_API_KEY`）
 - **CloudGPU preset**: `deepseek-v4.1-flash`（仅 LLM —— 无嵌入预设，请单独配置嵌入模型；密钥 `CLOUDGPU_API_KEY`）
+- **Jina AI preset**: `jina-embeddings-v5-text-small`（仅嵌入 —— 无 LLM，请搭配任意 LLM provider；密钥 `JINA_API_KEY`）
 - **Google Gemini preset**: `gemini-3.8-flash`（仅 LLM —— 无嵌入预设，请搭配 OpenAI 兼容嵌入器；别名 `gemini`）
 
 ```bash
@@ -95,6 +96,10 @@ he config llm -p moonshot -k your-moonshot-key
 # CloudGPU（仅 LLM —— 请单独配置嵌入模型）
 he config init -p cloudgpu -k your-cloudgpu-key
 he config embedder -p openai -k sk-your-openai-key
+
+# Jina AI（仅嵌入 —— 请搭配任意 LLM provider）
+he config llm -p openai -k sk-your-openai-key
+he config embedder -p jina -k jina-your-key
 
 # Google Gemini（仅 LLM —— 请搭配 OpenAI 兼容嵌入器）
 he config llm -p google -k your-google-api-key

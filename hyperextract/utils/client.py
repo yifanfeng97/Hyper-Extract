@@ -169,6 +169,22 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
         "default_llm": "qwen/qwen3.8-27b-free",
         "default_embedder": "llmtr/embeddingmagibu-200m",
     },
+    # Jina AI. Embeddings-only preset — the mirror image of the LLM-only ones
+    # above. Jina documents that /v1/embeddings "matches the input and output
+    # JSON schemas of OpenAI's text-embedding-3-large" (jina.ai/embeddings,
+    # 2026-11-12), which is exactly what CompatibleEmbeddings sends. Model ids
+    # are bare, no vendor prefix, even though /v1/models lists them with a
+    # "jina-ai/" prefix. "jina-embeddings-v5-text-small" is 1024 dims; the v5
+    # ids accept a Jina-specific "task" field that this repo does not send, so
+    # Jina applies its default — pick "jina-embeddings-v3" if you want the
+    # older, non-task-conditioned behaviour. default_llm is None: the
+    # /v1/chat/completions route on this host serves jina-ocr-v1 (document
+    # OCR), not a general-purpose chat model, so pair it with an LLM provider.
+    "jina": {
+        "base_url": "https://api.jina.ai/v1",
+        "default_llm": None,
+        "default_embedder": "jina-embeddings-v5-text-small",
+    },
     # Anthropic (Claude). Uses the native ChatAnthropic client, so base_url is
     # left empty (the SDK targets api.anthropic.com by default). Anthropic has
     # no embeddings API, hence default_embedder is None — pair it with an
@@ -211,6 +227,11 @@ GOOGLE_PROVIDERS = ("google", "gemini")
 # machine and accept any API key value, so a configured key is not required.
 LOCAL_PROVIDERS = ("vllm", "ollama")
 
+# Providers that serve embeddings but no chat model usable for extraction.
+# Distinct from a preset whose default_llm is None because the user supplies
+# the model (vllm): there is no model to supply here.
+EMBEDDING_ONLY_PROVIDERS = ("jina",)
+
 # Native (non-OpenAI-compatible) LLM providers — do not fall back to
 # OPENAI_API_KEY when their own env vars are unset.
 _NATIVE_LLM_PROVIDERS = ANTHROPIC_PROVIDERS + GOOGLE_PROVIDERS
@@ -228,6 +249,7 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "cheaperinference": ("CHEAPER_INFERENCE_API_KEY",),
     "api-route": ("API_ROUTE_API_KEY",),
     "cerebras": ("CEREBRAS_API_KEY",),
+    "jina": ("JINA_API_KEY",),
     "atlascloud": ("ATLASCLOUD_API_KEY",),
     "runcrate": ("RUNCRATE_API_KEY",),
     "ollama": ("OLLAMA_API_KEY",),
@@ -497,6 +519,13 @@ def create_llm(
     config.update(kwargs)
 
     provider = config.get("provider", "")
+
+    if provider in EMBEDDING_ONLY_PROVIDERS:
+        raise ValueError(
+            f"Provider '{provider}' serves embeddings only and has no chat "
+            "model for extraction. Configure a separate LLM, e.g. "
+            f'create_client(llm="openai:gpt-4o-mini", embedder="{provider}", ...).'
+        )
 
     if provider in ANTHROPIC_PROVIDERS:
         try:

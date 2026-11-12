@@ -1,6 +1,6 @@
 # Provider System
 
-Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, **Cheaper Inference**, **CloudGPU**, **llm.buzz**, **LLMTR**, and local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
+Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, **Cheaper Inference**, **CloudGPU**, **llm.buzz**, **LLMTR**. For embeddings it also supports **Jina AI**, plus local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
 
 ---
 
@@ -44,6 +44,7 @@ Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**,
 |----------|-------|------------|----------|
 | **OpenAI** | text-embedding-3-small | 1536 | ✅ |
 | **Alibaba Bailian** | text-embedding-v4 | 1024 | ✅ |
+| **Jina AI** | jina-embeddings-v5-text-small | 1024 | documented (untested) |
 
 ---
 
@@ -160,6 +161,14 @@ llm, emb = create_client(
 llm, emb = create_client(
     llm="cheaperinference",
     embedder="openai:text-embedding-3-small",
+)
+
+# Jina AI — embeddings only; its /v1/embeddings matches the OpenAI
+# schema. There is no chat model here, so pair it with any LLM provider.
+# Key: JINA_API_KEY. Override model with "jina:jina-embeddings-v3".
+llm, emb = create_client(
+    llm="openai:gpt-4o-mini",
+    embedder="jina",  # default embedder: jina-embeddings-v5-text-small
 )
 
 # Local vLLM

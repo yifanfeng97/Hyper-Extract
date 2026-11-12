@@ -1,6 +1,6 @@
 # Provider Configuration Guide
 
-Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, Cerebras, Mistral AI, Moonshot (Kimi), Cheaper Inference, CloudGPU, or local vLLM deployments.
+Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, Cerebras, Mistral AI, Moonshot (Kimi), Cheaper Inference, CloudGPU, or local vLLM deployments. For embeddings it also supports Jina AI.
 
 ---
 
@@ -204,6 +204,25 @@ llm, emb = create_client(
 # Or override the model: create_client(llm="moonshot:kimi-k3", ...)
 ```
 
+### Jina AI (embeddings only)
+
+```python
+from hyperextract import create_client
+
+# Jina's /v1/embeddings matches OpenAI's embeddings schema, so it drops
+# straight into this repo's embedder. It serves no chat model usable for
+# extraction, so the LLM comes from another provider.
+# Key: JINA_API_KEY.
+llm, emb = create_client(
+    llm="openai:gpt-4o-mini",
+    embedder="jina",  # default embedder: jina-embeddings-v5-text-small
+)
+# Or override the model: create_client(embedder="jina:jina-embeddings-v3", ...)
+# create_llm("jina") raises: there is no chat model to fall back to.
+# The v5 ids accept a Jina-specific "task" field this repo does not send,
+# so Jina applies its default; jina-embeddings-v3 predates that field.
+```
+
 ### Cheaper Inference
 
 ```python
@@ -266,6 +285,7 @@ print(f"Nodes: {len(graph.nodes)}, Edges: {len(graph.edges)}")
 | **Mistral AI** | `he config init -p mistral -k your-mistral-key` |
 | **Moonshot (Kimi)** | `he config llm -p moonshot -k sk-moonshot-xxx` + `he config embedder -p openai -k sk-xxx` |
 | **CloudGPU** | `he config init -p cloudgpu -k your-cloudgpu-key` + `he config embedder -p openai -k sk-xxx` |
+| **Jina AI** (embedder) | `he config llm -p openai -k sk-xxx` + `he config embedder -p jina -k jina-xxx` |
 | **vLLM** | `he config init` → select "local vLLM" |
 | **Mixed** (LLM=Bailian, Embedder=vLLM) | `he config llm -p bailian -k sk-xxx` + `he config embedder -p vllm -u http://localhost:8001/v1 -k dummy` |
 

@@ -26,6 +26,13 @@ _CANONICAL_PROVIDERS = tuple(
 _PROVIDER_HELP = ", ".join(_CANONICAL_PROVIDERS)
 
 
+def _provider_lacks_llm(provider: str | None) -> bool:
+    """True when a preset serves embeddings but no chat model."""
+    from hyperextract.utils.client import EMBEDDING_ONLY_PROVIDERS
+
+    return bool(provider) and provider in EMBEDDING_ONLY_PROVIDERS
+
+
 def _provider_lacks_embeddings(provider: str | None) -> bool:
     """True when a hosted preset is known to have no embeddings API.
 
@@ -236,6 +243,13 @@ def llm(
         console.print("[green]LLM configuration cleared[/green]")
         return
 
+    if _provider_lacks_llm(provider):
+        console.print(
+            f"[yellow]Warning: Provider '{provider}' serves embeddings only and "
+            "has no chat model. Point the LLM at another provider instead, e.g. "
+            "he config llm -p openai -k YOUR_KEY.[/yellow]"
+        )
+
     config.set_llm(
         provider=provider,
         model=model,
@@ -423,7 +437,10 @@ def init(
 
     # PROVIDER_PRESETS comes from the module-level import; a local import
     # here would shadow it and break earlier uses inside init().
-    from hyperextract.utils.client import LOCAL_PROVIDERS
+    from hyperextract.utils.client import (
+        EMBEDDING_ONLY_PROVIDERS,
+        LOCAL_PROVIDERS,
+    )
 
     console.print("[bold]Step 1: Choose Provider[/bold]")
     providers = [
@@ -442,6 +459,7 @@ def init(
         ("cloudgpu", "CloudGPU", "https://cloudgpu.app/v1"),
         ("llmbuzz", "llm.buzz", "https://api.llm.buzz/api/v1"),
         ("llmtr", "LLMTR", "https://llmtr.com/v1"),
+        ("jina", "Jina AI (仅嵌入)", "https://api.jina.ai/v1"),
         ("vllm", "本地 vLLM", "自定义地址"),
         ("custom", "其他 OpenAI 兼容接口", "自定义地址"),
     ]
@@ -472,11 +490,36 @@ def init(
     console.print()
     console.print(f"[bold]Step 2: LLM Configuration (Provider: {selected})[/bold]")
 
+    llm_provider = selected
     if selected == "vllm":
         llm_model = console.input("  LLM Model: ").strip()
         llm_base_url = console.input(
             "  LLM Base URL (e.g. http://localhost:8000/v1): "
         ).strip()
+    elif selected in EMBEDDING_ONLY_PROVIDERS:
+        # Mirror of the "no default embedder" branch in step 3: this provider
+        # serves embeddings only, so the LLM has to come from elsewhere.
+        console.print(
+            f"  [yellow]Provider '{selected}' serves embeddings only and has no "
+            "chat model. Configure an LLM separately "
+            "(default provider: openai).[/yellow]"
+        )
+        llm_provider = (
+            console.input("  LLM provider (default: openai): ").strip() or "openai"
+        )
+        llm_preset = PROVIDER_PRESETS.get(llm_provider, {})
+        llm_default_model = llm_preset.get("default_llm") or "gpt-4o-mini"
+        llm_preset_url = llm_preset.get("base_url") or ""
+        llm_model = (
+            console.input(f"  Model (default: {llm_default_model}): ").strip()
+            or llm_default_model
+        )
+        llm_base_url = (
+            console.input(
+                f"  Base URL (default: {llm_preset_url}, press Enter to skip): "
+            ).strip()
+            or llm_preset_url
+        )
     else:
         llm_model = (
             console.input(f"  Model (default: {default_llm}): ").strip() or default_llm
@@ -492,16 +535,16 @@ def init(
     while not llm_api_key:
         llm_api_key = console.input("  API Key: ").strip()
         if not llm_api_key:
-            if selected in LOCAL_PROVIDERS:
+            if llm_provider in LOCAL_PROVIDERS:
                 llm_api_key = "dummy"
-                console.print(f"  [dim]Using 'dummy' for {selected}[/dim]")
+                console.print(f"  [dim]Using 'dummy' for {llm_provider}[/dim]")
                 break
             console.print(
                 "  [red]API Key is required. Please enter your API key.[/red]"
             )
 
     config.set_llm(
-        provider=selected,
+        provider=llm_provider,
         model=llm_model,
         api_key=llm_api_key,
         base_url=llm_base_url or None,
@@ -557,9 +600,9 @@ def init(
     while not emb_api_key:
         emb_api_key = console.input("  API Key: ").strip()
         if not emb_api_key:
-            if selected in LOCAL_PROVIDERS:
+            if emb_provider in LOCAL_PROVIDERS:
                 emb_api_key = "dummy"
-                console.print(f"  [dim]Using 'dummy' for {selected}[/dim]")
+                console.print(f"  [dim]Using 'dummy' for {emb_provider}[/dim]")
                 break
             console.print(
                 "  [red]API Key is required. Please enter your API key.[/red]"
