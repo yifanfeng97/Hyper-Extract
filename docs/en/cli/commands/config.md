@@ -37,6 +37,7 @@ Initialize configuration. This is the **lazy one-step setup** — if you pass `-
 - **Mistral AI preset**: `mistral-large-latest` + `mistral-embed` (LLM and embedder on one key `MISTRAL_API_KEY`)
 - **Moonshot (Kimi) preset**: `kimi-k3.1-pro` (LLM only — no embedder preset, pair with an OpenAI-compatible embedder; key `MOONSHOT_API_KEY`)
 - **CloudGPU preset**: `deepseek-v4.1-flash` (LLM only — no embedder preset, configure an embedding provider separately; key `CLOUDGPU_API_KEY`)
+- **Jina AI preset**: `jina-embeddings-v5-text-small` (embedder only — no LLM, pair with any LLM provider; key `JINA_API_KEY`)
 - **Google Gemini preset**: `gemini-3.8-flash` (LLM only — no embedder preset, pair with an OpenAI-compatible embedder; alias `gemini`)
 
 ```bash
@@ -95,6 +96,10 @@ he config llm -p moonshot -k your-moonshot-key
 # CloudGPU (LLM only — configure an embedding provider separately)
 he config init -p cloudgpu -k your-cloudgpu-key
 he config embedder -p openai -k sk-your-openai-key
+
+# Jina AI (embedder only — pair it with any LLM provider)
+he config llm -p openai -k sk-your-openai-key
+he config embedder -p jina -k jina-your-key
 
 # Google Gemini (LLM only — pair with an OpenAI-compatible embedder)
 he config llm -p google -k your-google-api-key

@@ -1,6 +1,6 @@
 # Provider 系统
 
-Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**Runcrate**、**Cerebras**、**Mistral AI**、**Moonshot (Kimi)**、**Cheaper Inference**、**CloudGPU**、**llm.buzz**、**LLMTR**、**本地 Ollama**、**本地 vLLM**。统一使用 `create_client()` 接口，仅需修改第一行。
+Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google Gemini**、**阿里云百炼**、**DeepSeek**、**OrcaRouter**、**Atlas Cloud**、**Runcrate**、**Cerebras**、**Mistral AI**、**Moonshot (Kimi)**、**Cheaper Inference**、**CloudGPU**、**llm.buzz**、**LLMTR**、**本地 Ollama**、**本地 vLLM**；嵌入另支持 **Jina AI**。统一使用 `create_client()` 接口，仅需修改第一行。
 
 ---
 
@@ -43,6 +43,7 @@ Hyper-Extract 支持以下接入方式：**OpenAI**、**Anthropic**、**Google G
 |------|------|------|---------|
 | **OpenAI** | text-embedding-3-small | 1536 | ✅ |
 | **阿里云百炼** | text-embedding-v4 | 1024 | ✅ |
+| **Jina AI** | jina-embeddings-v5-text-small | 1024 | 按文档（未实测） |
 
 ---
 
@@ -146,6 +147,14 @@ llm, emb = create_client(
 llm, emb = create_client(
     llm="cloudgpu",  # 默认模型：deepseek-v4.1-flash
     embedder="openai",
+)
+
+# Jina AI —— 仅嵌入，其 /v1/embeddings 与 OpenAI schema 一致。
+# 此处没有聊天模型，请搭配任意 LLM provider。密钥：JINA_API_KEY
+# 可用 "jina:jina-embeddings-v3" 覆盖模型。
+llm, emb = create_client(
+    llm="openai:gpt-4o-mini",
+    embedder="jina",  # 默认嵌入器：jina-embeddings-v5-text-small
 )
 
 # 本地 vLLM
