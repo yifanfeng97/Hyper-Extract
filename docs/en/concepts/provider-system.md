@@ -1,6 +1,6 @@
 # Provider System
 
-Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, **Cheaper Inference**, **CloudGPU**, **llm.buzz**, **LLMTR**, and local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
+Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, **Cheaper Inference**, **CloudGPU**, **llm.buzz**, **LLMTR**, **TrustedRouter**, and local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
 
 ---
 
@@ -26,6 +26,7 @@ Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**,
 | **CloudGPU** | `deepseek-v4.1-flash` | ✅ | ✅ | OpenAI-compatible LLM preset. Model ids have no vendor prefix. Configure an embedding provider separately. Key: `CLOUDGPU_API_KEY`. [Setup guide](../python/guides/provider-configuration.md#cloudgpu) |
 | **llm.buzz** | `openai/gpt-5.4-mini` | ✅ | ✅ | OpenAI-compatible gateway with vendor-prefixed model ids (list: `GET https://api.llm.buzz/api/v1/models`). LLM only in this preset (pair with an OpenAI-compatible embedder). Keys: `LLM_BUZZ_API_KEY` |
 | **LLMTR** | `qwen/qwen3.8-27b-free`, `llmtr/qwen3-8-27b` | ✅ | ✅ | OpenAI-compatible gateway. Default model is the free `qwen/qwen3.8-27b-free`. `llmtr/...` ids keep the `llmtr/` prefix (override with `llmtr:llmtr/qwen3-8-27b`). Also serves embeddings (`llmtr/embeddingmagibu-200m`), so one key covers the LLM and the embedder. Keys: `LLMTR_API_KEY` |
+| **TrustedRouter** | `deepseek/deepseek-v4-flash`, `anthropic/claude-sonnet-4.5`, `trustedrouter/auto` | ✅ | ✅ | OpenAI-compatible gateway with vendor-prefixed model ids (list, no key needed: `GET https://api.trustedrouter.com/v1/models`). Default model is the fixed, low-cost `deepseek/deepseek-v4-flash`; `trustedrouter/auto` routes per request and its price varies by route. Also serves embeddings (`openai/text-embedding-3-small`), so one key covers the LLM and the embedder. Keys: `TRUSTEDROUTER_API_KEY` |
 | **Alibaba Bailian** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | Works out of the box |
 | **Alibaba Bailian** | qwen-max / deepseek-v3 | ❌ | ❌ | Only `json_object`; not compatible with function-calling structured output |
 
@@ -116,6 +117,15 @@ llm, emb = create_client(
 llm, emb = create_client(
     llm="llmtr",  # default model: qwen/qwen3.8-27b-free
     embedder="llmtr",  # default embedder: llmtr/embeddingmagibu-200m
+)
+
+# TrustedRouter — OpenAI-compatible gateway with vendor-prefixed model ids.
+# Serves embeddings too, so one key covers both.
+# Key: TRUSTEDROUTER_API_KEY. Override model with
+# "trustedrouter:anthropic/claude-sonnet-4.5".
+llm, emb = create_client(
+    llm="trustedrouter",  # default model: deepseek/deepseek-v4-flash
+    embedder="trustedrouter",  # default embedder: openai/text-embedding-3-small
 )
 
 # Ollama — local runtime, OpenAI-compatible on http://localhost:11434/v1.

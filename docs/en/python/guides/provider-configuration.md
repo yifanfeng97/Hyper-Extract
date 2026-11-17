@@ -1,6 +1,6 @@
 # Provider Configuration Guide
 
-Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, Cerebras, Mistral AI, Moonshot (Kimi), Cheaper Inference, CloudGPU, or local vLLM deployments.
+Configure Hyper-Extract to work with OpenAI, Bailian (Alibaba Cloud), DeepSeek, OrcaRouter, Atlas Cloud, Runcrate, Cerebras, Mistral AI, Moonshot (Kimi), Cheaper Inference, CloudGPU, TrustedRouter, or local vLLM deployments.
 
 ---
 
@@ -218,6 +218,19 @@ llm, emb = create_client(
 )
 ```
 
+### TrustedRouter
+
+```python
+from hyperextract import create_client
+
+# TrustedRouter is an OpenAI-compatible gateway with vendor-prefixed model ids
+# (list, no key needed: https://api.trustedrouter.com/v1/models).
+# It also serves embeddings, so one key covers the LLM and the embedder.
+# Key: TRUSTEDROUTER_API_KEY (fallback: OPENAI_API_KEY).
+llm, emb = create_client("trustedrouter")
+# Or override the model: create_client("trustedrouter:anthropic/claude-sonnet-4.5", ...)
+```
+
 ### Local vLLM
 
 ```python
@@ -266,6 +279,7 @@ print(f"Nodes: {len(graph.nodes)}, Edges: {len(graph.edges)}")
 | **Mistral AI** | `he config init -p mistral -k your-mistral-key` |
 | **Moonshot (Kimi)** | `he config llm -p moonshot -k sk-moonshot-xxx` + `he config embedder -p openai -k sk-xxx` |
 | **CloudGPU** | `he config init -p cloudgpu -k your-cloudgpu-key` + `he config embedder -p openai -k sk-xxx` |
+| **TrustedRouter** | `he config init -p trustedrouter -k your-trustedrouter-key` |
 | **vLLM** | `he config init` → select "local vLLM" |
 | **Mixed** (LLM=Bailian, Embedder=vLLM) | `he config llm -p bailian -k sk-xxx` + `he config embedder -p vllm -u http://localhost:8001/v1 -k dummy` |
 

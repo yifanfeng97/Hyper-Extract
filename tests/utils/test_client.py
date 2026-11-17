@@ -311,6 +311,25 @@ class TestCreateLLM:
         llm = create_llm("llmtr")
         assert llm.openai_api_key.get_secret_value() == "llmtr-from-env"
 
+    def test_create_llm_trustedrouter(self):
+        """Create LLM with trustedrouter preset (OpenAI-compatible gateway)."""
+        llm = create_llm("trustedrouter", api_key="tr-test")
+        assert llm.model_name == "deepseek/deepseek-v4-flash"
+        assert llm.openai_api_base == "https://api.trustedrouter.com/v1"
+
+    def test_create_llm_trustedrouter_model_override(self):
+        """A vendor-prefixed TrustedRouter model id after the colon is kept whole."""
+        llm = create_llm("trustedrouter:anthropic/claude-sonnet-4.5", api_key="tr-test")
+        assert llm.model_name == "anthropic/claude-sonnet-4.5"
+        assert llm.openai_api_base == "https://api.trustedrouter.com/v1"
+
+    def test_create_llm_trustedrouter_env_key(self, monkeypatch):
+        """TrustedRouter key is read from TRUSTEDROUTER_API_KEY, ahead of OPENAI_API_KEY."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-test")
+        monkeypatch.setenv("TRUSTEDROUTER_API_KEY", "tr-from-env")
+        llm = create_llm("trustedrouter")
+        assert llm.openai_api_key.get_secret_value() == "tr-from-env"
+
     def test_create_llm_orcarouter(self):
         """Create LLM with orcarouter preset (OpenAI-compatible gateway)."""
         llm = create_llm("orcarouter", api_key="sk-test")
@@ -871,6 +890,14 @@ class TestProviderPresets:
         assert preset["base_url"] == "https://llmtr.com/v1"
         assert preset["default_llm"] == "qwen/qwen3.8-27b-free"
         assert preset["default_embedder"] == "llmtr/embeddingmagibu-200m"
+
+    def test_trustedrouter_provider(self):
+        """TrustedRouter has its own preset with an embedder on the same endpoint."""
+        assert "trustedrouter" in PROVIDER_PRESETS
+        preset = PROVIDER_PRESETS["trustedrouter"]
+        assert preset["base_url"] == "https://api.trustedrouter.com/v1"
+        assert preset["default_llm"] == "deepseek/deepseek-v4-flash"
+        assert preset["default_embedder"] == "openai/text-embedding-3-small"
 
     def test_orcarouter_provider(self):
         """OrcaRouter has its own preset (OpenAI-compatible, named models)."""

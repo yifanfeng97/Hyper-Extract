@@ -399,6 +399,45 @@ def test_interactive_init_lists_atlascloud():
     assert '"atlascloud"' in inspect.getsource(init)
 
 
+def test_trustedrouter_is_a_library_preset_with_its_own_key_env():
+    """The CLI reads TrustedRouter from the library tables, not a copy."""
+    from hyperextract.cli import config as cli_config
+
+    assert "trustedrouter" in cli_config.PROVIDER_PRESETS
+    assert cli_config.PROVIDER_API_KEY_ENV["trustedrouter"] == (
+        "TRUSTEDROUTER_API_KEY",
+    )
+
+
+def test_get_llm_and_embedder_config_read_trustedrouter_env_key(tmp_path, monkeypatch):
+    """Empty toml api_key must resolve TRUSTEDROUTER_API_KEY, ahead of OPENAI_API_KEY."""
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-must-not-win")
+    monkeypatch.setenv("TRUSTEDROUTER_API_KEY", "tr-from-env")
+
+    cm = ConfigManager(tmp_path / "config.toml")
+    cm.set_llm(provider="trustedrouter", model="deepseek/deepseek-v4-flash", api_key="")
+    cm.set_embedder(
+        provider="trustedrouter", model="openai/text-embedding-3-small", api_key=""
+    )
+
+    llm_cfg = cm.get_llm_config()
+    assert llm_cfg.api_key == "tr-from-env"
+    assert llm_cfg.base_url == "https://api.trustedrouter.com/v1"
+    emb_cfg = cm.get_embedder_config()
+    assert emb_cfg.api_key == "tr-from-env"
+    assert emb_cfg.base_url == "https://api.trustedrouter.com/v1"
+
+
+def test_interactive_init_lists_trustedrouter():
+    """he config init provider list includes TrustedRouter."""
+    import inspect
+
+    from hyperextract.cli.commands.config import init
+
+    assert '"trustedrouter"' in inspect.getsource(init)
+
+
 def test_get_llm_and_embedder_config_read_runcrate_env_key(tmp_path, monkeypatch):
     """Empty toml api_key must resolve RUNCRATE_API_KEY, ahead of OPENAI_API_KEY."""
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)

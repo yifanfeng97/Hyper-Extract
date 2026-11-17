@@ -37,6 +37,7 @@ Initialize configuration. This is the **lazy one-step setup** — if you pass `-
 - **Mistral AI preset**: `mistral-large-latest` + `mistral-embed` (LLM and embedder on one key `MISTRAL_API_KEY`)
 - **Moonshot (Kimi) preset**: `kimi-k3.1-pro` (LLM only — no embedder preset, pair with an OpenAI-compatible embedder; key `MOONSHOT_API_KEY`)
 - **CloudGPU preset**: `deepseek-v4.1-flash` (LLM only — no embedder preset, configure an embedding provider separately; key `CLOUDGPU_API_KEY`)
+- **TrustedRouter preset**: `deepseek/deepseek-v4-flash` + `openai/text-embedding-3-small` (OpenAI-compatible gateway; LLM and embedder on one key `TRUSTEDROUTER_API_KEY`)
 - **Google Gemini preset**: `gemini-3.8-flash` (LLM only — no embedder preset, pair with an OpenAI-compatible embedder; alias `gemini`)
 
 ```bash
@@ -47,8 +48,8 @@ he config init [OPTIONS]
 
 | Option | Short | Description |
 |--------|-------|-------------|
-| `--provider` | `-p` | Provider preset (`openai` / `anthropic` / `google` / `orcarouter` / `atlascloud` / `runcrate` / `moonshot` / `mistral` / `cerebras` / `deepseek` / `bailian` / `ollama` / `vllm`) |
-| `--provider` | `-p` | Provider preset (`openai` / `anthropic` / `google` / `orcarouter` / `atlascloud` / `runcrate` / `cloudgpu` / `deepseek` / `bailian` / `vllm`) |
+| `--provider` | `-p` | Provider preset (`openai` / `anthropic` / `google` / `orcarouter` / `atlascloud` / `trustedrouter` / `runcrate` / `moonshot` / `mistral` / `cerebras` / `deepseek` / `bailian` / `ollama` / `vllm`) |
+| `--provider` | `-p` | Provider preset (`openai` / `anthropic` / `google` / `orcarouter` / `atlascloud` / `trustedrouter` / `runcrate` / `cloudgpu` / `deepseek` / `bailian` / `vllm`) |
 | `--api-key` | `-k` | API key for both LLM and embedder |
 | `--base-url` | `-u` | Custom API base URL (optional) |
 
@@ -95,6 +96,9 @@ he config llm -p moonshot -k your-moonshot-key
 # CloudGPU (LLM only — configure an embedding provider separately)
 he config init -p cloudgpu -k your-cloudgpu-key
 he config embedder -p openai -k sk-your-openai-key
+
+# TrustedRouter (OpenAI-compatible gateway; LLM and embedder on one key)
+he config init -p trustedrouter -k your-trustedrouter-key
 
 # Google Gemini (LLM only — pair with an OpenAI-compatible embedder)
 he config llm -p google -k your-google-api-key
@@ -153,9 +157,9 @@ he config llm [OPTIONS]
 
 | Option | Short | Description |
 |--------|-------|-------------|
-| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `runcrate`, `deepseek`, `bailian`, `ollama`, `vllm`) |
-| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `runcrate`, `moonshot`, `mistral`, `cerebras`, `deepseek`, `bailian`, `vllm`) |
-| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `runcrate`, `cloudgpu`, `deepseek`, `bailian`, `vllm`) |
+| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `trustedrouter`, `runcrate`, `deepseek`, `bailian`, `ollama`, `vllm`) |
+| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `trustedrouter`, `runcrate`, `moonshot`, `mistral`, `cerebras`, `deepseek`, `bailian`, `vllm`) |
+| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `trustedrouter`, `runcrate`, `cloudgpu`, `deepseek`, `bailian`, `vllm`) |
 | `--api-key` | `-k` | LLM API key |
 | `--model` | `-m` | LLM model name |
 | `--base-url` | `-u` | Custom API base URL |
@@ -198,9 +202,9 @@ he config embedder [OPTIONS]
 
 | Option | Short | Description |
 |--------|-------|-------------|
-| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `runcrate`, `deepseek`, `bailian`, `ollama`, `vllm`) |
-| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `runcrate`, `moonshot`, `mistral`, `cerebras`, `deepseek`, `bailian`, `vllm`) |
-| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `runcrate`, `cloudgpu`, `deepseek`, `bailian`, `vllm`) |
+| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `trustedrouter`, `runcrate`, `deepseek`, `bailian`, `ollama`, `vllm`) |
+| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `trustedrouter`, `runcrate`, `moonshot`, `mistral`, `cerebras`, `deepseek`, `bailian`, `vllm`) |
+| `--provider` | `-p` | Provider preset (e.g. `openai`, `anthropic`, `google`, `orcarouter`, `atlascloud`, `trustedrouter`, `runcrate`, `cloudgpu`, `deepseek`, `bailian`, `vllm`) |
 | `--api-key` | `-k` | Embedder API key |
 | `--model` | `-m` | Embedder model name |
 | `--base-url` | `-u` | Custom API base URL |
