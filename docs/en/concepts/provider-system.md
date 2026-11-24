@@ -1,6 +1,6 @@
 # Provider System
 
-Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, **Cheaper Inference**, **CloudGPU**, **llm.buzz**, **LLMTR**, and local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
+Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**, **Google Gemini**, **Alibaba Bailian**, **DeepSeek**, **OrcaRouter**, **Atlas Cloud**, **Runcrate**, **Cerebras**, **Mistral AI**, **Moonshot (Kimi)**, **Cheaper Inference**, **CloudGPU**, **llm.buzz**, **LLMTR**, **TeamoRouter**, and local **Ollama** or **vLLM**. All use the same `create_client()` interface — only the first line changes.
 
 ---
 
@@ -26,6 +26,7 @@ Hyper-Extract supports these ways to connect to LLMs: **OpenAI**, **Anthropic**,
 | **CloudGPU** | `deepseek-v4.1-flash` | ✅ | ✅ | OpenAI-compatible LLM preset. Model ids have no vendor prefix. Configure an embedding provider separately. Key: `CLOUDGPU_API_KEY`. [Setup guide](../python/guides/provider-configuration.md#cloudgpu) |
 | **llm.buzz** | `openai/gpt-5.4-mini` | ✅ | ✅ | OpenAI-compatible gateway with vendor-prefixed model ids (list: `GET https://api.llm.buzz/api/v1/models`). LLM only in this preset (pair with an OpenAI-compatible embedder). Keys: `LLM_BUZZ_API_KEY` |
 | **LLMTR** | `qwen/qwen3.8-27b-free`, `llmtr/qwen3-8-27b` | ✅ | ✅ | OpenAI-compatible gateway. Default model is the free `qwen/qwen3.8-27b-free`. `llmtr/...` ids keep the `llmtr/` prefix (override with `llmtr:llmtr/qwen3-8-27b`). Also serves embeddings (`llmtr/embeddingmagibu-200m`), so one key covers the LLM and the embedder. Keys: `LLMTR_API_KEY` |
+| **TeamoRouter** | `glm-5.3`, `deepseek-v4-flash`, `kimi-k3.1-pro` | ✅ | ✅ | OpenAI-compatible gateway; model ids have no vendor prefix (list with prices: `GET https://api.teamorouter.com/v1/models/pricing`, no key needed). LLM only in this preset (pair with an OpenAI-compatible embedder). Keys: `TEAMOROUTER_API_KEY` |
 | **Alibaba Bailian** | qwen-plus / qwen-turbo / qwen3.6-plus / deepseek-r1 | ✅ | ✅ | Works out of the box |
 | **Alibaba Bailian** | qwen-max / deepseek-v3 | ❌ | ❌ | Only `json_object`; not compatible with function-calling structured output |
 

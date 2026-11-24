@@ -169,6 +169,16 @@ PROVIDER_PRESETS: dict[str, dict[str, str | None]] = {
         "default_llm": "qwen/qwen3.8-27b-free",
         "default_embedder": "llmtr/embeddingmagibu-200m",
     },
+    # TeamoRouter. OpenAI-compatible gateway for GLM, Kimi, DeepSeek, Qwen,
+    # Claude, GPT and Gemini. Model ids have no vendor prefix (default:
+    # "glm-5.3"; list with prices: GET https://api.teamorouter.com/v1/models/pricing).
+    # TeamoRouter does not serve embeddings, so pair it with an
+    # OpenAI-compatible embedder.
+    "teamorouter": {
+        "base_url": "https://api.teamorouter.com/v1",
+        "default_llm": "glm-5.3",
+        "default_embedder": None,
+    },
     # Anthropic (Claude). Uses the native ChatAnthropic client, so base_url is
     # left empty (the SDK targets api.anthropic.com by default). Anthropic has
     # no embeddings API, hence default_embedder is None — pair it with an
@@ -234,6 +244,7 @@ PROVIDER_API_KEY_ENV: dict[str, tuple[str, ...]] = {
     "cloudgpu": ("CLOUDGPU_API_KEY",),
     "llmbuzz": ("LLM_BUZZ_API_KEY",),
     "llmtr": ("LLMTR_API_KEY",),
+    "teamorouter": ("TEAMOROUTER_API_KEY",),
 }
 
 
